@@ -1,9 +1,15 @@
+
+"use client";
+
+import { useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Search, Send } from "lucide-react";
+import { Search, Send, Sparkles, Loader2 } from "lucide-react";
+import { generateReplySuggestions } from "@/ai/flows/generate-reply-suggestions";
+import { useToast } from "@/hooks/use-toast";
 
 const conversations = [
     { id: 1, name: 'John Doe', message: 'Hi, is the downtown loft still available?', avatar: 'https://placehold.co/100x100.png', unread: 2 },
@@ -12,16 +18,68 @@ const conversations = [
     { id: 4, name: 'Emily Brown', message: 'What is the pet policy?', avatar: 'https://placehold.co/100x100.png', unread: 1 },
 ];
 
-const messages = [
+const initialMessages = [
     { from: 'other', text: 'Hi, is the downtown loft still available for rent?', time: '10:30 AM' },
     { from: 'me', text: 'Hello! Yes, it is. Are you interested in a viewing?', time: '10:32 AM' },
     { from: 'other', text: 'Yes, I would be. When is a good time?', time: '10:33 AM' },
 ];
 
 export default function MessagesPage() {
+    const [messages, setMessages] = useState(initialMessages);
+    const [newMessage, setNewMessage] = useState("");
+    const [suggestions, setSuggestions] = useState<string[]>([]);
+    const [isSuggesting, setIsSuggesting] = useState(false);
+    const { toast } = useToast();
+
+    const handleSendMessage = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (newMessage.trim() === "") return;
+
+        const message = {
+            from: 'me',
+            text: newMessage,
+            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        };
+        setMessages([...messages, message]);
+        setNewMessage("");
+        setSuggestions([]);
+    };
+
+    const handleGetSuggestions = async () => {
+        setIsSuggesting(true);
+        setSuggestions([]);
+        try {
+            const conversationHistory = messages
+                .slice(-5) // Use last 5 messages for context
+                .map(m => `${m.from === 'me' ? 'Owner' : 'Tenant'}: ${m.text}`)
+                .join('\n');
+            
+            const result = await generateReplySuggestions({
+                conversationHistory,
+                userRole: 'owner' // Assuming the current user is an owner
+            });
+
+            if (result.suggestions && result.suggestions.length > 0) {
+                setSuggestions(result.suggestions);
+            } else {
+                 toast({ title: "No suggestions found.", description: "Could not generate relevant suggestions." });
+            }
+        } catch (error) {
+            console.error("Error getting suggestions:", error);
+            toast({ title: "Error", description: "Failed to get reply suggestions.", variant: "destructive" });
+        } finally {
+            setIsSuggesting(false);
+        }
+    };
+    
+    const handleSuggestionClick = (suggestion: string) => {
+        setNewMessage(suggestion);
+        setSuggestions([]);
+    }
+
     return (
         <div className="h-[calc(100vh-4rem)] flex">
-            <div className="w-1/3 border-r flex flex-col">
+            <div className="w-1/3 border-r flex flex-col bg-card">
                 <div className="p-4 border-b">
                     <h1 className="text-2xl font-bold">Messages</h1>
                     <div className="relative mt-4">
@@ -50,7 +108,7 @@ export default function MessagesPage() {
                 </ScrollArea>
             </div>
             <div className="w-2/3 flex flex-col">
-                <div className="p-4 border-b flex items-center gap-4">
+                <div className="p-4 border-b flex items-center gap-4 bg-background">
                      <Avatar>
                         <AvatarImage src="https://placehold.co/100x100.png" alt="John Doe" data-ai-hint="person" />
                         <AvatarFallback>JD</AvatarFallback>
@@ -76,12 +134,34 @@ export default function MessagesPage() {
                     </div>
                 </ScrollArea>
                 <div className="p-4 border-t bg-background">
-                    <div className="relative">
-                        <Input placeholder="Type a message..." className="pr-12 h-12" />
-                        <Button size="icon" className="absolute right-2 top-1/2 -translate-y-1/2" aria-label="Send Message">
+                     {isSuggesting && (
+                        <div className="flex justify-center items-center h-10 mb-2">
+                            <Loader2 className="mr-2 h-5 w-5 animate-spin"/>
+                            <span>Generating smart replies...</span>
+                        </div>
+                     )}
+                     {suggestions.length > 0 && (
+                        <div className="flex flex-wrap gap-2 mb-2">
+                            {suggestions.map((s, i) => (
+                                <Button key={i} variant="outline" size="sm" onClick={() => handleSuggestionClick(s)}>{s}</Button>
+                            ))}
+                        </div>
+                     )}
+                    <form onSubmit={handleSendMessage} className="flex items-center gap-2">
+                        <Button type="button" variant="ghost" size="icon" onClick={handleGetSuggestions} disabled={isSuggesting}>
+                            <Sparkles className="h-5 w-5" />
+                             <span className="sr-only">Suggest Replies</span>
+                        </Button>
+                        <Input 
+                            placeholder="Type a message..." 
+                            className="flex-grow h-12" 
+                            value={newMessage} 
+                            onChange={(e) => setNewMessage(e.target.value)}
+                        />
+                        <Button type="submit" size="icon" className="h-12 w-12" aria-label="Send Message">
                             <Send className="h-5 w-5"/>
                         </Button>
-                    </div>
+                    </form>
                 </div>
             </div>
         </div>
