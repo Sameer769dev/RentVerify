@@ -12,11 +12,18 @@ import { Sidebar, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import type { Listing } from "@/types";
-import MapView from "./_components/map-view";
 import { getListings } from "@/lib/firestore";
+import dynamic from 'next/dynamic';
+import { Skeleton } from "@/components/ui/skeleton";
 
 type SortOption = "price_asc" | "price_desc" | "newest";
 type ViewMode = "grid" | "list" | "map";
+
+const MapView = dynamic(() => import('./_components/map-view'), {
+    ssr: false,
+    loading: () => <Skeleton className="w-full h-[calc(100vh-8rem)]" />,
+});
+
 
 export default function SearchPage() {
     const [viewMode, setViewMode] = React.useState<ViewMode>("grid");

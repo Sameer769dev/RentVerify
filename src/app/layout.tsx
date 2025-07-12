@@ -6,6 +6,7 @@ import Footer from '@/components/footer';
 import { Inter } from 'next/font/google';
 import { cn } from '@/lib/utils';
 import { AuthProvider } from '@/components/auth-provider';
+import "leaflet/dist/leaflet.css";
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
 
