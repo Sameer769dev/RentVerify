@@ -9,6 +9,7 @@ import { BedDouble, Bath, MapPin, Wifi, Utensils, ParkingCircle, Dog, Wind, Shie
 import SmartRecommendations from "./components/smart-recommendations";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import BookingModal from "./components/booking-modal";
 
 const amenityIcons: { [key: string]: React.ElementType } = {
   Wifi,
@@ -123,10 +124,10 @@ export default function ListingPage({ params }: { params: { id: string } }) {
         <div className="lg:col-span-1 space-y-8">
            <SmartRecommendations currentListing={listing} />
            <Card>
-                <CardContent className="p-6 text-center">
-                    <h2 className="text-xl font-semibold mb-4">Interested in this property?</h2>
-                    <p className="text-muted-foreground mb-4">Contact the owner directly to schedule a viewing.</p>
-                     <Button asChild className="w-full" variant="outline">
+                <CardContent className="p-6">
+                    <h2 className="text-xl font-semibold mb-4 text-center">Interested in this property?</h2>
+                    <BookingModal listing={listing} />
+                    <Button asChild className="w-full mt-2" variant="outline">
                         <Link href="/messages?to=owner123">Message Owner</Link>
                     </Button>
                 </CardContent>
