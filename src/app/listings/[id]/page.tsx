@@ -3,7 +3,6 @@
 
 import { notFound } from "next/navigation";
 import Image from "next/image";
-import { listings } from "@/lib/mock-data";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
@@ -14,8 +13,10 @@ import { Button } from "@/components/ui/button";
 import BookingModal from "./components/booking-modal";
 import { Separator } from "@/components/ui/separator";
 import { textToSpeech } from "@/ai/flows/text-to-speech-flow";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { getListing } from "@/lib/firestore";
+import type { Listing } from "@/types";
 
 const amenityIcons: { [key: string]: React.ElementType } = {
   Wifi,
@@ -36,17 +37,34 @@ const amenityIcons: { [key: string]: React.ElementType } = {
 };
 
 export default function ListingPage({ params }: { params: { id: string } }) {
+  const [listing, setListing] = useState<Listing | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const [isGeneratingSpeech, setIsGeneratingSpeech] = useState(false);
   const [audioSrc, setAudioSrc] = useState<string | null>(null);
   const { toast } = useToast();
 
-  const listing = listings.find((l) => l.id === params.id);
-
-  if (!listing) {
-    notFound();
-  }
+  useEffect(() => {
+      const fetchListing = async () => {
+          setIsLoading(true);
+          try {
+              const listingData = await getListing(params.id);
+              if (listingData) {
+                  setListing(listingData);
+              } else {
+                  notFound();
+              }
+          } catch(error) {
+              console.error("Failed to fetch listing:", error);
+              notFound();
+          } finally {
+              setIsLoading(false);
+          }
+      };
+      fetchListing();
+  }, [params.id]);
   
   const handleListen = async () => {
+    if (!listing) return;
     setIsGeneratingSpeech(true);
     setAudioSrc(null);
     try {
@@ -62,6 +80,18 @@ export default function ListingPage({ params }: { params: { id: string } }) {
     } finally {
         setIsGeneratingSpeech(false);
     }
+  }
+
+  if (isLoading) {
+    return (
+        <div className="flex justify-center items-center h-screen">
+            <Loader2 className="h-8 w-8 animate-spin" />
+        </div>
+    )
+  }
+
+  if (!listing) {
+    notFound();
   }
 
   return (

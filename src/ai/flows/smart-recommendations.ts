@@ -11,7 +11,7 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'zod';
-import { listings } from '@/lib/mock-data';
+import { getListings } from '@/lib/firestore'; // Changed from mock-data
 import type { Listing } from '@/types';
 
 const RecommendListingsInputSchema = z.object({
@@ -27,29 +27,15 @@ const RecommendListingsInputSchema = z.object({
 });
 export type RecommendListingsInput = z.infer<typeof RecommendListingsInputSchema>;
 
-const ListingSchema = z.object({
-  id: z.string(),
-  title: z.string(),
-  description: z.string(),
-  price: z.number(),
-  location: z.object({
-    address: z.string(),
-    city: z.string(),
-    country: z.string(),
-    lat: z.number(),
-    lng: z.number(),
-  }),
-  images: z.array(z.string()),
-  beds: z.number(),
-  baths: z.number(),
-  amenities: z.array(z.string()),
-  verified: z.boolean(),
-  type: z.enum(['House', 'Flat', 'Room']),
-});
+// Only need to return IDs and a brief reason, the full data will be fetched client-side.
+const RecommendedListingSchema = z.object({
+  id: z.string().describe("The ID of the recommended listing."),
+  reason: z.string().describe("A brief explanation of why this listing was recommended.")
+})
 
 const RecommendListingsOutputSchema = z.object({
   recommendations: z
-    .array(ListingSchema)
+    .array(RecommendedListingSchema)
     .describe('An array of up to 3 recommended listing objects that are similar to the current one.'),
 });
 export type RecommendListingsOutput = z.infer<typeof RecommendListingsOutputSchema>;
@@ -64,8 +50,9 @@ const recommendListingsFlow = ai.defineFlow(
     inputSchema: RecommendListingsInputSchema,
     outputSchema: RecommendListingsOutputSchema,
   },
-  async input => {
-    const availableListings = listings.filter(l => l.id !== input.currentListingId);
+  async (input) => {
+    const allListings = await getListings();
+    const availableListings = allListings.filter(l => l.id !== input.currentListingId);
     
     const prompt = ai.definePrompt({
       name: 'recommendListingsPrompt',
@@ -80,12 +67,12 @@ const recommendListingsFlow = ai.defineFlow(
 
       **IMPORTANT:** The user is currently viewing the property with ID {{{currentListingId}}}. Do NOT include this property in your recommendations.
 
-      Here is the full list of available properties you can choose from:
+      Here is the full list of available properties you can choose from. Only use properties from this list:
       ---
-      ${JSON.stringify(availableListings)}
+      ${JSON.stringify(availableListings.map(l => ({ id: l.id, title: l.title, description: l.description, price: l.price, location: l.location, amenities: l.amenities })))}
       ---
 
-      Analyze the user's information and select the three best-matching properties from the list above. Return them as a structured array.
+      Analyze the user's information and select the three best-matching properties from the list above. For each recommendation, provide a brief reason. Return them as a structured array.
       `,
     });
 

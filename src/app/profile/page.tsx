@@ -14,10 +14,12 @@ import {
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Upload, User, Home, Settings, Trash2 } from "lucide-react"
-import { listings } from "@/lib/mock-data"
+import { Upload, User, Home, Settings, Trash2, Loader2 } from "lucide-react"
 import ListingCard from "@/components/listing-card"
-import { Separator } from "@/components/ui/separator"
+import { useAuth } from "@/components/auth-provider"
+import { useRouter } from "next/navigation"
+import { getUserListings } from "@/lib/firestore"
+import type { Listing } from "@/types"
 
 const tabs = [
   { id: "profile", label: "Edit Profile", icon: User },
@@ -26,8 +28,44 @@ const tabs = [
 ]
 
 export default function ProfilePage() {
-  const [activeTab, setActiveTab] = React.useState("profile")
-  const userListings = listings.slice(0, 3) // Mock data for user's listings
+  const [activeTab, setActiveTab] = React.useState("profile");
+  const [userListings, setUserListings] = React.useState<Listing[]>([]);
+  const [isLoadingListings, setIsLoadingListings] = React.useState(false);
+  const { user } = useAuth();
+  const router = useRouter();
+  
+  React.useEffect(() => {
+    if (!user) {
+      router.push('/login?redirect=/profile');
+    }
+  }, [user, router]);
+  
+  React.useEffect(() => {
+    if (activeTab === "listings") {
+      const fetchUserListings = async () => {
+        setIsLoadingListings(true);
+        try {
+          const listings = await getUserListings();
+          setUserListings(listings);
+        } catch (error) {
+          console.error("Failed to fetch user listings:", error);
+        } finally {
+          setIsLoadingListings(false);
+        }
+      };
+      fetchUserListings();
+    }
+  }, [activeTab]);
+
+
+  if (!user) {
+    return (
+        <div className="flex justify-center items-center h-screen">
+            <Loader2 className="h-8 w-8 animate-spin" />
+        </div>
+    )
+  }
+
 
   const renderContent = () => {
     switch (activeTab) {
@@ -41,20 +79,24 @@ export default function ProfilePage() {
             <CardContent className="space-y-6">
                <div className="flex items-center gap-4">
                   <Avatar className="w-20 h-20">
-                    <AvatarImage src="https://placehold.co/200x200.png" data-ai-hint="person" />
-                    <AvatarFallback>U</AvatarFallback>
+                    <AvatarImage src={user.photoURL || "https://placehold.co/200x200.png"} data-ai-hint="person" />
+                    <AvatarFallback>{user.displayName?.charAt(0) || 'U'}</AvatarFallback>
                   </Avatar>
                   <Button variant="outline"><Upload className="mr-2 h-4 w-4"/> Upload New Photo</Button>
                </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <label htmlFor="firstName">First Name</label>
-                  <Input id="firstName" defaultValue="John" />
+                  <Input id="firstName" defaultValue={user.displayName?.split(' ')[0] || ''} />
                 </div>
                 <div className="space-y-2">
                   <label htmlFor="lastName">Last Name</label>
-                  <Input id="lastName" defaultValue="Doe" />
+                  <Input id="lastName" defaultValue={user.displayName?.split(' ')[1] || ''} />
                 </div>
+              </div>
+               <div className="space-y-2">
+                <label htmlFor="email">Email</label>
+                <Input id="email" type="email" defaultValue={user.email || ''} disabled />
               </div>
               <div className="space-y-2">
                 <label htmlFor="bio">Bio</label>
@@ -78,9 +120,15 @@ export default function ProfilePage() {
               <CardDescription>An overview of the properties you have listed on RentVerify.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-               {userListings.map(listing => (
-                  <ListingCard key={listing.id} listing={listing} layout="list" />
-               ))}
+               {isLoadingListings ? (
+                 <div className="flex justify-center items-center p-8"><Loader2 className="h-8 w-8 animate-spin"/></div>
+               ) : userListings.length > 0 ? (
+                  userListings.map(listing => (
+                    <ListingCard key={listing.id} listing={listing} layout="list" />
+                  ))
+               ) : (
+                 <p className="text-muted-foreground text-center p-8">You haven't listed any properties yet.</p>
+               )}
             </CardContent>
           </Card>
         )

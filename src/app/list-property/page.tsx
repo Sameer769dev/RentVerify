@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -18,6 +18,9 @@ import { toast } from '@/hooks/use-toast';
 import { generateListingDescription } from '@/ai/flows/generate-listing-description-flow';
 import Image from 'next/image';
 import TextareaAutosize from 'react-textarea-autosize';
+import { addListing, uploadImage } from '@/lib/firestore';
+import { useAuth } from '@/components/auth-provider';
+import { useRouter } from 'next/navigation';
 
 const amenitiesList = ["Wifi", "Kitchen", "Washer", "Dryer", "Air Conditioning", "Heating", "Parking", "Garden", "Pet Friendly", "Pool", "Gym", "Desk", "Elevator"];
 
@@ -43,6 +46,8 @@ export default function ListPropertyPage() {
   const [isGeneratingDesc, setIsGeneratingDesc] = useState(false);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { user } = useAuth();
+  const router = useRouter();
 
   const form = useForm<ListingFormData>({
     resolver: zodResolver(listingSchema),
@@ -57,6 +62,11 @@ export default function ListPropertyPage() {
       photos: [],
     },
   });
+
+  if (!user) {
+    router.push('/login?redirect=/list-property');
+    return null;
+  }
 
   const handleGenerateDescription = async () => {
     setIsGeneratingDesc(true);
@@ -120,16 +130,52 @@ export default function ListPropertyPage() {
 
   const onSubmit = async (data: ListingFormData) => {
     setIsSubmitting(true);
-    console.log("Listing data:", data);
-    // Here you would typically handle the form submission, e.g., upload the image and save the data.
-    await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate API call
-    setIsSubmitting(false);
-    toast({
-      title: "Property Listed!",
-      description: "Your property has been successfully listed and is pending review.",
-    });
-    form.reset();
-    setImagePreviews([]);
+    try {
+        // Upload images to Firebase Storage
+        const imageUrls = await Promise.all(data.photos.map(file => uploadImage(file)));
+
+        // Create listing data object
+        const listingData = {
+            title: data.title,
+            description: data.description,
+            price: data.price,
+            location: {
+                address: data.address,
+                city: data.city,
+                country: data.country,
+                lat: Math.random() * 180 - 90, // Replace with real geocoding
+                lng: Math.random() * 360 - 180,
+            },
+            images: imageUrls,
+            beds: data.beds,
+            baths: data.baths,
+            amenities: data.amenities || [],
+            type: data.type,
+            verified: false, // Default to not verified
+        };
+
+        // Add listing to Firestore
+        const newListingId = await addListing(listingData);
+
+        toast({
+            title: "Property Listed!",
+            description: "Your property has been successfully listed and is pending review.",
+        });
+        
+        form.reset();
+        setImagePreviews([]);
+        router.push(`/listings/${newListingId}`);
+
+    } catch (error) {
+        console.error("Failed to list property:", error);
+        toast({
+            title: "Listing Failed",
+            description: "An error occurred while listing your property. Please try again.",
+            variant: "destructive",
+        });
+    } finally {
+        setIsSubmitting(false);
+    }
   };
 
   return (
@@ -354,7 +400,7 @@ export default function ListPropertyPage() {
                     <div className="flex flex-col items-center justify-center pt-5 pb-6">
                       <Upload className="w-10 h-10 mb-3 text-muted-foreground" />
                       <p className="mb-2 text-sm text-muted-foreground"><span className="font-semibold">Click to upload</span> or drag and drop</p>
-                      <p className="text-xs text-muted-foreground">PNG, JPG (MAX. 800x400px)</p>
+                      <p className="text-xs text-muted-foreground">PNG, JPG</p>
                     </div>
                     <Input id="photoUpload" type="file" multiple className="hidden" ref={fileInputRef} accept="image/png, image/jpeg, image/jpg" onChange={handleFileChange} />
                   </label>

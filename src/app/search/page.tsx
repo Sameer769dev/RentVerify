@@ -1,26 +1,28 @@
 
+
 "use client";
 
 import * as React from "react"
-import { listings as allListings } from "@/lib/mock-data";
 import ListingCard from "@/components/listing-card";
 import { SearchFilters } from "./_components/search-filters";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { ChevronDown, List, LayoutGrid, Map } from "lucide-react";
+import { ChevronDown, List, LayoutGrid, Map, Loader2 } from "lucide-react";
 import { Sidebar, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import type { Listing } from "@/types";
 import MapView from "./_components/map-view";
+import { getListings } from "@/lib/firestore";
 
 type SortOption = "price_asc" | "price_desc" | "newest";
 type ViewMode = "grid" | "list" | "map";
 
 export default function SearchPage() {
     const [viewMode, setViewMode] = React.useState<ViewMode>("grid");
-    const [listings, setListings] = React.useState<Listing[]>(allListings);
-    const [filteredListings, setFilteredListings] = React.useState<Listing[]>(allListings);
+    const [allListings, setAllListings] = React.useState<Listing[]>([]);
+    const [filteredListings, setFilteredListings] = React.useState<Listing[]>([]);
+    const [isLoading, setIsLoading] = React.useState(true);
 
     // Filter states
     const [priceRange, setPriceRange] = React.useState(10000);
@@ -28,13 +30,29 @@ export default function SearchPage() {
     const [selectedAmenities, setSelectedAmenities] = React.useState<string[]>([]);
     const [sortOption, setSortOption] = React.useState<SortOption>("price_asc");
 
+    React.useEffect(() => {
+        const fetchListings = async () => {
+            setIsLoading(true);
+            try {
+                const listingsData = await getListings();
+                setAllListings(listingsData);
+                setFilteredListings(listingsData);
+            } catch (error) {
+                console.error("Failed to fetch listings:", error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        fetchListings();
+    }, []);
+
     const handleAmenityChange = (amenity: string, checked: boolean) => {
         setSelectedAmenities(prev => 
             checked ? [...prev, amenity] : prev.filter(a => a !== amenity)
         );
     };
 
-    const handleApplyFilters = () => {
+    const handleApplyFilters = React.useCallback(() => {
         let temp_listings = [...allListings];
 
         // Price filter
@@ -51,22 +69,20 @@ export default function SearchPage() {
                 selectedAmenities.every(amenity => l.amenities.includes(amenity))
             );
         }
-
-        setListings(temp_listings);
-    };
+        
+        // Sorting
+        if (sortOption === 'price_asc') {
+            temp_listings.sort((a, b) => a.price - b.price);
+        } else if (sortOption === 'price_desc') {
+            temp_listings.sort((a, b) => b.price - a.price);
+        }
+        
+        setFilteredListings(temp_listings);
+    }, [allListings, priceRange, propertyType, selectedAmenities, sortOption]);
 
     React.useEffect(() => {
-        let sortedListings = [...listings];
-        if (sortOption === 'price_asc') {
-            sortedListings.sort((a, b) => a.price - b.price);
-        } else if (sortOption === 'price_desc') {
-            sortedListings.sort((a, b) => b.price - a.price);
-        }
-        // 'newest' would require a date field, which we don't have.
-        // For now, it will just default to the filtered order.
-        
-        setFilteredListings(sortedListings);
-    }, [listings, sortOption]);
+        handleApplyFilters();
+    }, [allListings, sortOption, handleApplyFilters]);
 
     const sortLabels: Record<SortOption, string> = {
         price_asc: "Price (Low to High)",
@@ -75,6 +91,14 @@ export default function SearchPage() {
     };
 
     const renderContent = () => {
+        if (isLoading) {
+             return (
+                <div className="flex justify-center items-center h-[calc(100vh-8rem)]">
+                    <Loader2 className="h-8 w-8 animate-spin" />
+                </div>
+            )
+        }
+        
         if (viewMode === 'map') {
             return <MapView listings={filteredListings} />;
         }
@@ -86,9 +110,13 @@ export default function SearchPage() {
                         ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6"
                         : "flex flex-col gap-6"
                 )}>
-                    {filteredListings.map((listing) => (
-                        <ListingCard key={listing.id} listing={listing} layout={viewMode as "grid" | "list"}/>
-                    ))}
+                    {filteredListings.length > 0 ? (
+                        filteredListings.map((listing) => (
+                            <ListingCard key={listing.id} listing={listing} layout={viewMode as "grid" | "list"}/>
+                        ))
+                    ) : (
+                        <p className="text-muted-foreground col-span-full text-center">No listings found that match your criteria.</p>
+                    )}
                 </div>
             </ScrollArea>
         );

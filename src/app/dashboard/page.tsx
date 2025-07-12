@@ -1,6 +1,8 @@
 
+
 "use client"
 
+import { useEffect, useState } from "react"
 import {
   Card,
   CardContent,
@@ -17,10 +19,13 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
-import { Progress } from "@/components/ui/progress"
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts"
-import { Eye, MessageSquare, CheckCircle, Percent } from "lucide-react"
+import { Eye, MessageSquare, CheckCircle, Percent, Loader2 } from "lucide-react"
+import { getUserListings } from "@/lib/firestore"
+import type { Listing } from "@/types"
+import { useAuth } from "@/components/auth-provider"
+import { useRouter } from "next/navigation"
 
 const chartData = [
   { month: "January", views: 186 },
@@ -38,14 +43,47 @@ const chartConfig = {
   },
 }
 
-const myProperties = [
-    { id: "1", title: "Modern Downtown Loft", status: "Listed", inquiries: 12, views: 1250 },
-    { id: "2", title: "Cozy Suburban House", status: "Rented", inquiries: 25, views: 3480 },
-    { id: "3", title: "Luxury Penthouse Suite", status: "Listed", inquiries: 5, views: 850 },
-    { id: "4", title: "Quaint Countryside Cottage", status: "Unlisted", inquiries: 0, views: 150 },
-];
-
 export default function DashboardPage() {
+  const [myProperties, setMyProperties] = useState<Listing[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const { user } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!user) {
+      router.push('/login?redirect=/dashboard');
+      return;
+    }
+
+    const fetchUserListings = async () => {
+      setIsLoading(true);
+      try {
+        const listings = await getUserListings();
+        setMyProperties(listings);
+      } catch (error) {
+        console.error("Failed to fetch user listings:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchUserListings();
+  }, [user, router]);
+  
+  if (isLoading) {
+     return (
+        <div className="flex justify-center items-center h-screen">
+            <Loader2 className="h-8 w-8 animate-spin" />
+        </div>
+    )
+  }
+
+  const totalListings = myProperties.length;
+  // Mocking rented and inquiries data for now
+  const rentedListings = totalListings > 0 ? 1 : 0; 
+  const occupancyRate = totalListings > 0 ? (rentedListings / totalListings) * 100 : 0;
+
+
   return (
     <div className="container mx-auto px-4 py-8 sm:px-6 lg:px-8">
       <div className="space-y-8">
@@ -93,7 +131,7 @@ export default function DashboardPage() {
               <CheckCircle className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">1/4</div>
+              <div className="text-2xl font-bold">{rentedListings}/{totalListings}</div>
               <p className="text-xs text-muted-foreground">
                 One new rental this month
               </p>
@@ -105,7 +143,7 @@ export default function DashboardPage() {
               <Percent className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">25%</div>
+              <div className="text-2xl font-bold">{occupancyRate.toFixed(0)}%</div>
               <p className="text-xs text-muted-foreground">
                 Based on your total properties
               </p>
@@ -165,11 +203,11 @@ export default function DashboardPage() {
                          <TableRow key={prop.id}>
                             <TableCell className="font-medium">{prop.title}</TableCell>
                             <TableCell>
-                                <Badge variant={prop.status === 'Listed' ? 'secondary' : 'default'}>
-                                    {prop.status}
+                                <Badge variant={prop.verified ? 'secondary' : 'default'}>
+                                    {prop.verified ? 'Verified' : 'Pending'}
                                 </Badge>
                             </TableCell>
-                            <TableCell className="text-right">{prop.inquiries}</TableCell>
+                            <TableCell className="text-right">0</TableCell>
                         </TableRow>
                        ))}
                     </TableBody>

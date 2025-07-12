@@ -1,7 +1,8 @@
 
+
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { recommendListings } from "@/ai/flows/smart-recommendations";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,6 +12,7 @@ import { Loader2, Sparkles } from "lucide-react";
 import type { Listing } from "@/types";
 import { useToast } from "@/hooks/use-toast";
 import ListingCard from "@/components/listing-card";
+import { getListings } from "@/lib/firestore";
 
 interface SmartRecommendationsProps {
   currentListing: Listing;
@@ -28,12 +30,17 @@ export default function SmartRecommendations({ currentListing }: SmartRecommenda
     setRecommendations(null);
 
     try {
+      const allListings = await getListings();
       const result = await recommendListings({
         userPreferences: preferences || "No specific preferences, use listing as base.",
         searchHistory: `Viewed listing: ${currentListing.title}`,
         currentListingId: currentListing.id,
       });
-      setRecommendations(result.recommendations);
+      // Filter recommendations from all listings
+      const recommendedListings = allListings.filter(listing => 
+        result.recommendations.some(rec => rec.id === listing.id)
+      );
+      setRecommendations(recommendedListings);
     } catch (error) {
       console.error("Error fetching recommendations:", error);
       toast({

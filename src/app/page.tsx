@@ -2,14 +2,16 @@
 
 "use client";
 
+import { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Card, CardTitle } from "@/components/ui/card"
-import { Search, Home, PlusCircle, ShieldCheck, HeartHandshake, Zap, UserMinus } from "lucide-react"
-import { listings } from "@/lib/mock-data"
+import { Search, Home, PlusCircle, ShieldCheck, HeartHandshake, Zap, UserMinus, Loader2 } from "lucide-react"
 import ListingCard from "@/components/listing-card"
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { getListings } from "@/lib/firestore";
+import type { Listing } from "@/types";
 
 const features = [
   {
@@ -55,7 +57,23 @@ const actionCards = [
 
 export default function HomePage() {
   const router = useRouter();
-  const latestVerifiedListings = listings.filter(l => l.verified).slice(0, 4);
+  const [latestVerifiedListings, setLatestVerifiedListings] = useState<Listing[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchListings = async () => {
+      try {
+        const allListings = await getListings();
+        const verified = allListings.filter(l => l.verified).slice(0, 4);
+        setLatestVerifiedListings(verified);
+      } catch (error) {
+        console.error("Failed to fetch listings:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchListings();
+  }, []);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -120,11 +138,17 @@ export default function HomePage() {
               Freshly listed and verified properties waiting for you.
             </p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {latestVerifiedListings.map((listing) => (
-              <ListingCard key={listing.id} listing={listing} />
-            ))}
-          </div>
+          {isLoading ? (
+            <div className="flex justify-center">
+              <Loader2 className="h-8 w-8 animate-spin" />
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {latestVerifiedListings.map((listing) => (
+                <ListingCard key={listing.id} listing={listing} />
+              ))}
+            </div>
+          )}
           <div className="mt-12 text-center">
             <Button size="lg" variant="outline" asChild>
                 <Link href="/search">View All Listings</Link>
