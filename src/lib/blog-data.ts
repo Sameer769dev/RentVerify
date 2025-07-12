@@ -57,7 +57,7 @@ export const blogPosts: BlogPost[] = [
       <h3>4. High-Pressure Tactics</h3>
       <p>Scammers may claim that many other people are interested and that you must act immediately to secure the rental. This is a tactic to get you to make a hasty decision without proper vetting.</p>
 
-      <p>By staying vigilant and trusting your instincts, you can safely navigate the rental market. At GharBhada.com, we verify all listings to add an extra layer of security.</p>
+      <p>By staying vigilant and trusting your instincts, you can safely navigate the rental market. At RentVerify, we verify all listings to add an extra layer of security.</p>
     `,
     image: "https://placehold.co/800x600.png",
     author: {
