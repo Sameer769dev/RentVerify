@@ -1,16 +1,21 @@
 
+"use client";
+
 import { notFound } from "next/navigation";
 import Image from "next/image";
 import { listings } from "@/lib/mock-data";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
-import { BedDouble, Bath, MapPin, Wifi, Utensils, ParkingCircle, Dog, Wind, ShieldCheck, Dumbbell, ConciergeBell, Fireplace, Desk, Elevator, Heater, Flower2, WashingMachine } from "lucide-react";
+import { BedDouble, Bath, MapPin, Wifi, Utensils, ParkingCircle, Dog, Wind, ShieldCheck, Dumbbell, ConciergeBell, Fireplace, Desk, Elevator, Heater, Flower2, WashingMachine, Volume2, Loader2 } from "lucide-react";
 import SmartRecommendations from "./components/smart-recommendations";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import BookingModal from "./components/booking-modal";
 import { Separator } from "@/components/ui/separator";
+import { textToSpeech } from "@/ai/flows/text-to-speech-flow";
+import { useState } from "react";
+import { useToast } from "@/hooks/use-toast";
 
 const amenityIcons: { [key: string]: React.ElementType } = {
   Wifi,
@@ -31,10 +36,32 @@ const amenityIcons: { [key: string]: React.ElementType } = {
 };
 
 export default function ListingPage({ params }: { params: { id: string } }) {
+  const [isGeneratingSpeech, setIsGeneratingSpeech] = useState(false);
+  const [audioSrc, setAudioSrc] = useState<string | null>(null);
+  const { toast } = useToast();
+
   const listing = listings.find((l) => l.id === params.id);
 
   if (!listing) {
     notFound();
+  }
+  
+  const handleListen = async () => {
+    setIsGeneratingSpeech(true);
+    setAudioSrc(null);
+    try {
+        const result = await textToSpeech({ text: listing.description });
+        setAudioSrc(result.audioDataUri);
+    } catch(e) {
+        console.error("Error generating speech", e);
+        toast({
+            title: "Error",
+            description: "Could not generate audio for the description.",
+            variant: "destructive"
+        })
+    } finally {
+        setIsGeneratingSpeech(false);
+    }
   }
 
   return (
@@ -98,7 +125,19 @@ export default function ListingPage({ params }: { params: { id: string } }) {
              <Separator className="my-6"/>
 
               <div className="mb-6">
-                <p className="text-muted-foreground leading-relaxed">{listing.description}</p>
+                <div className="flex justify-between items-center mb-2">
+                     <p className="text-muted-foreground leading-relaxed">{listing.description}</p>
+                     <Button variant="outline" size="icon" onClick={handleListen} disabled={isGeneratingSpeech}>
+                        {isGeneratingSpeech ? <Loader2 className="h-5 w-5 animate-spin"/> : <Volume2 className="h-5 w-5"/>}
+                        <span className="sr-only">Listen to description</span>
+                     </Button>
+                </div>
+                {audioSrc && (
+                    <audio controls autoPlay className="w-full mt-4">
+                        <source src={audioSrc} type="audio/wav" />
+                        Your browser does not support the audio element.
+                    </audio>
+                )}
               </div>
 
               <Separator className="my-6"/>
