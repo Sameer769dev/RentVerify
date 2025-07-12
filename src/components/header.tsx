@@ -13,6 +13,7 @@ import {
   Building,
   PlusCircle,
   Search,
+  LogIn,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
@@ -37,6 +38,8 @@ const navLinks = [
 ]
 
 export default function Header() {
+  const isLoggedIn = false; // Replace with actual auth state
+
   return (
     <header className="sticky top-0 z-50 flex h-16 items-center gap-4 border-b bg-background/80 backdrop-blur-sm px-4 md:px-6">
       <div className="flex items-center gap-2">
@@ -68,33 +71,44 @@ export default function Header() {
               List a Property
             </Link>
           </Button>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="secondary" size="icon" className="rounded-full">
-              <User className="h-5 w-5" />
-              <span className="sr-only">Toggle user menu</span>
+
+        {isLoggedIn ? (
+            <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+                <Button variant="secondary" size="icon" className="rounded-full">
+                <User className="h-5 w-5" />
+                <span className="sr-only">Toggle user menu</span>
+                </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+                <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem>
+                <User className="mr-2 h-4 w-4" />
+                <span>Profile</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                <Link href="/verify-kyc">
+                    <ShieldCheck className="mr-2 h-4 w-4" />
+                    <span>Verify KYC</span>
+                </Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem>
+                <LogOut className="mr-2 h-4 w-4" />
+                <span>Log out</span>
+                </DropdownMenuItem>
+            </DropdownMenuContent>
+            </DropdownMenu>
+        ) : (
+            <Button asChild variant="outline">
+                <Link href="/login">
+                    <LogIn className="mr-2 h-4 w-4"/>
+                    Login
+                </Link>
             </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>My Account</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem>
-              <User className="mr-2 h-4 w-4" />
-              <span>Profile</span>
-            </DropdownMenuItem>
-            <DropdownMenuItem asChild>
-              <Link href="/verify-kyc">
-                <ShieldCheck className="mr-2 h-4 w-4" />
-                <span>Verify KYC</span>
-              </Link>
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem>
-              <LogOut className="mr-2 h-4 w-4" />
-              <span>Log out</span>
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        )}
+
 
         <Sheet>
           <SheetTrigger asChild>
