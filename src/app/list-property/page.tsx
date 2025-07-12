@@ -12,10 +12,11 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from '@/components/ui/checkbox';
-import { Upload, Home, Loader2, FileImage, Wand2 } from "lucide-react";
+import { Upload, Home, Loader2, FileImage, Wand2, X } from "lucide-react";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { toast } from '@/hooks/use-toast';
 import { generateListingDescription } from '@/ai/flows/generate-listing-description-flow';
+import Image from 'next/image';
 
 const amenitiesList = ["Wifi", "Kitchen", "Washer", "Dryer", "Air Conditioning", "Heating", "Parking", "Garden", "Pet Friendly", "Pool", "Gym", "Desk", "Elevator"];
 
@@ -30,7 +31,7 @@ const listingSchema = z.object({
   baths: z.coerce.number().min(1, "Number of baths is required."),
   type: z.enum(['House', 'Flat', 'Room'], { required_error: "Please select a property type." }),
   amenities: z.array(z.string()).optional(),
-  photo: z.custom<File>(val => val instanceof File, "Please upload a property photo."),
+  photos: z.array(z.custom<File>()).min(1, "Please upload at least one property photo."),
   keywords: z.string().optional(),
 });
 
@@ -39,7 +40,7 @@ type ListingFormData = z.infer<typeof listingSchema>;
 export default function ListPropertyPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [fileName, setFileName] = useState<string | null>(null);
+  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const form = useForm<ListingFormData>({
@@ -52,6 +53,7 @@ export default function ListPropertyPage() {
       country: "USA",
       amenities: [],
       keywords: "",
+      photos: [],
     },
   });
 
@@ -92,6 +94,28 @@ export default function ListPropertyPage() {
       setIsGenerating(false);
     }
   };
+  
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      const files = e.target.files;
+      if (files) {
+          const currentFiles = form.getValues('photos') || [];
+          const newFiles = Array.from(files);
+          const allFiles = [...currentFiles, ...newFiles];
+          form.setValue('photos', allFiles, { shouldValidate: true });
+
+          const newPreviews = newFiles.map(file => URL.createObjectURL(file));
+          setImagePreviews(prev => [...prev, ...newPreviews]);
+      }
+  };
+
+  const handleRemoveImage = (index: number) => {
+      const currentFiles = form.getValues('photos');
+      const newFiles = currentFiles.filter((_, i) => i !== index);
+      form.setValue('photos', newFiles, { shouldValidate: true });
+
+      const newPreviews = imagePreviews.filter((_, i) => i !== index);
+      setImagePreviews(newPreviews);
+  }
 
   const onSubmit = async (data: ListingFormData) => {
     setIsSubmitting(true);
@@ -104,7 +128,7 @@ export default function ListPropertyPage() {
       description: "Your property has been successfully listed and is pending review.",
     });
     form.reset();
-    setFileName(null);
+    setImagePreviews([]);
   };
 
   return (
@@ -319,41 +343,44 @@ export default function ListPropertyPage() {
 
               <FormField
                 control={form.control}
-                name="photo"
-                render={({ field }) => (
+                name="photos"
+                render={() => (
                   <FormItem>
-                    <FormLabel>Property Photo</FormLabel>
+                    <FormLabel>Property Photos</FormLabel>
+                     {imagePreviews.length > 0 && (
+                        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4">
+                           {imagePreviews.map((src, index) => (
+                                <div key={index} className="relative aspect-square">
+                                    <Image src={src} alt={`Preview ${index}`} fill className="rounded-md object-cover" />
+                                    <Button
+                                        type="button"
+                                        variant="destructive"
+                                        size="icon"
+                                        className="absolute top-1 right-1 h-6 w-6"
+                                        onClick={() => handleRemoveImage(index)}
+                                    >
+                                        <X className="h-4 w-4" />
+                                    </Button>
+                                </div>
+                            ))}
+                        </div>
+                     )}
                     <FormControl>
                       <div className="flex items-center justify-center w-full">
                         <label htmlFor="photoUpload" className="flex flex-col items-center justify-center w-full h-40 border-2 border-dashed rounded-lg cursor-pointer bg-secondary/50 hover:bg-secondary/80">
                           <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                            {fileName ? (
-                              <>
-                                <FileImage className="w-10 h-10 mb-4 text-primary" />
-                                <p className="mb-2 text-sm text-foreground">{fileName}</p>
-                                <p className="text-xs text-muted-foreground">Click to change photo</p>
-                              </>
-                            ) : (
-                              <>
-                                <Upload className="w-10 h-10 mb-4 text-muted-foreground" />
-                                <p className="mb-2 text-sm text-muted-foreground"><span className="font-semibold">Click to upload main photo</span></p>
-                                <p className="text-xs text-muted-foreground">PNG, JPG or JPEG (MAX. 5MB)</p>
-                              </>
-                            )}
+                            <Upload className="w-10 h-10 mb-4 text-muted-foreground" />
+                            <p className="mb-2 text-sm text-muted-foreground"><span className="font-semibold">Click to upload photos</span></p>
+                            <p className="text-xs text-muted-foreground">PNG, JPG or JPEG (MAX. 5MB)</p>
                           </div>
                           <Input
                             id="photoUpload"
                             type="file"
+                            multiple
                             className="hidden"
                             ref={fileInputRef}
                             accept="image/png, image/jpeg, image/jpg"
-                            onChange={(e) => {
-                              const file = e.target.files?.[0];
-                              if (file) {
-                                field.onChange(file);
-                                setFileName(file.name);
-                              }
-                            }}
+                            onChange={handleFileChange}
                           />
                         </label>
                       </div>
@@ -374,3 +401,5 @@ export default function ListPropertyPage() {
     </div>
   );
 }
+
+    
