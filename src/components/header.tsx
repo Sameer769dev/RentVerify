@@ -103,9 +103,11 @@ export default function Header() {
                         <span>Dashboard</span>
                     </Link>
                 </DropdownMenuItem>
-                <DropdownMenuItem>
-                <User className="mr-2 h-4 w-4" />
-                <span>Profile</span>
+                <DropdownMenuItem asChild>
+                    <Link href="/profile" className="flex items-center w-full">
+                        <User className="mr-2 h-4 w-4" />
+                        <span>Profile</span>
+                    </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
                 <Link href="/verify-kyc" className="w-full flex items-center">
@@ -154,6 +156,14 @@ export default function Header() {
                     <Link href="/dashboard" className="flex items-center gap-4 px-2.5 text-foreground hover:text-foreground">
                         <LayoutDashboard className="h-5 w-5" />
                         Dashboard
+                    </Link>
+                </SheetClose>
+              )}
+               {isLoggedIn && (
+                <SheetClose asChild>
+                    <Link href="/profile" className="flex items-center gap-4 px-2.5 text-foreground hover:text-foreground">
+                        <User className="h-5 w-5" />
+                        Profile
                     </Link>
                 </SheetClose>
               )}
