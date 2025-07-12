@@ -108,7 +108,7 @@ export default function Header() {
                 <span>Profile</span>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                <Link href="/verify-kyc">
+                <Link href="/verify-kyc" className="w-full flex items-center">
                     <ShieldCheck className="mr-2 h-4 w-4" />
                     <span>Verify KYC</span>
                 </Link>
