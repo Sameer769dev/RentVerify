@@ -10,7 +10,9 @@
  */
 
 import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
+import {z} from 'zod';
+import { listings } from '@/lib/mock-data';
+import type { Listing } from '@/types';
 
 const RecommendListingsInputSchema = z.object({
   userPreferences: z
@@ -19,17 +21,36 @@ const RecommendListingsInputSchema = z.object({
   searchHistory: z
     .string()
     .describe('A summary of the user’s past searches and viewed properties, including location, price range, and property types.'),
-  currentListingDescription: z
+  currentListingId: z
     .string()
-    .optional()
-    .describe('The description of the currently viewed listing, if applicable.'),
+    .describe('The ID of the currently viewed listing, to be excluded from recommendations.'),
 });
 export type RecommendListingsInput = z.infer<typeof RecommendListingsInputSchema>;
 
+const ListingSchema = z.object({
+  id: z.string(),
+  title: z.string(),
+  description: z.string(),
+  price: z.number(),
+  location: z.object({
+    address: z.string(),
+    city: z.string(),
+    country: z.string(),
+    lat: z.number(),
+    lng: z.number(),
+  }),
+  images: z.array(z.string()),
+  beds: z.number(),
+  baths: z.number(),
+  amenities: z.array(z.string()),
+  verified: z.boolean(),
+  type: z.enum(['House', 'Flat', 'Room']),
+});
+
 const RecommendListingsOutputSchema = z.object({
   recommendations: z
-    .string()
-    .describe('A list of recommended listings, including their descriptions and reasons for recommendation.'),
+    .array(ListingSchema)
+    .describe('An array of up to 3 recommended listing objects that are similar to the current one.'),
 });
 export type RecommendListingsOutput = z.infer<typeof RecommendListingsOutputSchema>;
 
@@ -43,14 +64,19 @@ const prompt = ai.definePrompt({
   output: {schema: RecommendListingsOutputSchema},
   prompt: `You are an expert rental recommendation agent.
 
-  Based on the user's preferences, search history, and the current listing they are viewing, you will recommend similar listings.
+  Your task is to find up to 3 properties from the provided list of available properties that are a good match for the user, based on their preferences and the property they are currently viewing.
 
-  User Preferences: {{{userPreferences}}}
-  Search History: {{{searchHistory}}}
-  Current Listing Description: {{{currentListingDescription}}}
+  **User Preferences:** {{{userPreferences}}}
+  **Search History / Current Context:** {{{searchHistory}}}
 
-  Provide a detailed list of recommended listings, including their descriptions and reasons for recommendation.
-  Format the response as a list of listing descriptions with a short reason for the recommendation after each.
+  **IMPORTANT:** The user is currently viewing the property with ID {{{currentListingId}}}. Do NOT include this property in your recommendations.
+
+  Here is the full list of available properties you can choose from:
+  ---
+  {{{json (getAvailableListings currentListingId)}}}
+  ---
+
+  Analyze the user's information and select the three best-matching properties from the list above. Return them as a structured array.
   `,
 });
 
@@ -59,6 +85,11 @@ const recommendListingsFlow = ai.defineFlow(
     name: 'recommendListingsFlow',
     inputSchema: RecommendListingsInputSchema,
     outputSchema: RecommendListingsOutputSchema,
+    dependencies: {
+        getAvailableListings: (currentListingId: string) => {
+             return JSON.stringify(listings.filter(l => l.id !== currentListingId));
+        }
+    }
   },
   async input => {
     const {output} = await prompt(input);

@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Loader2, Sparkles } from "lucide-react";
 import type { Listing } from "@/types";
 import { useToast } from "@/hooks/use-toast";
+import ListingCard from "@/components/listing-card";
 
 interface SmartRecommendationsProps {
   currentListing: Listing;
@@ -17,7 +18,7 @@ interface SmartRecommendationsProps {
 
 export default function SmartRecommendations({ currentListing }: SmartRecommendationsProps) {
   const [preferences, setPreferences] = useState("");
-  const [recommendations, setRecommendations] = useState<string | null>(null);
+  const [recommendations, setRecommendations] = useState<Listing[] | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
@@ -30,7 +31,7 @@ export default function SmartRecommendations({ currentListing }: SmartRecommenda
       const result = await recommendListings({
         userPreferences: preferences || "No specific preferences, use listing as base.",
         searchHistory: `Viewed listing: ${currentListing.title}`,
-        currentListingDescription: currentListing.description,
+        currentListingId: currentListing.id,
       });
       setRecommendations(result.recommendations);
     } catch (error) {
@@ -77,11 +78,13 @@ export default function SmartRecommendations({ currentListing }: SmartRecommenda
             Suggest Listings
           </Button>
         </form>
-        {recommendations && (
+        {recommendations && recommendations.length > 0 && (
           <div className="mt-6 border-t pt-6">
             <h3 className="font-semibold mb-4">Here are some suggestions:</h3>
-            <div className="prose prose-sm max-w-none text-muted-foreground whitespace-pre-wrap">
-              {recommendations}
+            <div className="space-y-4">
+              {recommendations.map((listing) => (
+                <ListingCard key={listing.id} listing={listing} layout="list"/>
+              ))}
             </div>
           </div>
         )}

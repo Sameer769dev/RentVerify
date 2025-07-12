@@ -22,7 +22,7 @@ const amenityIcons: { [key: string]: React.ElementType } = {
   Parking: ParkingCircle,
   Garden: Flower2,
   "Pet Friendly": Dog,
-  Pool: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5 text-primary"><path d="M10 12c-4.418 0-8-3.582-8-8s3.582-8 8-8 8 3.582 8 8-3.582 8-8 8z"/><path d="M10 12c-4.418 0-8 3.582-8 8s3.582 8 8 8 8-3.582 8-8-3.582-8-8-8z"/></svg>, // Placeholder Pool icon
+  Pool: Dumbbell, // Using Dumbbell as a stand-in for Pool
   Gym: Dumbbell,
   Concierge: ConciergeBell,
   Fireplace: Fireplace,
@@ -110,7 +110,7 @@ export default function ListingPage({ params }: { params: { id: string } }) {
                     const Icon = amenityIcons[amenity];
                     return (
                       <div key={amenity} className="flex items-center gap-3">
-                        {Icon ? <Icon /> : null}
+                        {Icon ? <Icon className="h-5 w-5 text-primary" /> : null}
                         <span className="text-muted-foreground">{amenity}</span>
                       </div>
                     );
