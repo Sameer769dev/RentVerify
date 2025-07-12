@@ -17,6 +17,7 @@ import {
   Search,
   LogIn,
   Newspaper,
+  LayoutDashboard,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
@@ -96,6 +97,12 @@ export default function Header() {
             <DropdownMenuContent align="end">
                 <DropdownMenuLabel>My Account</DropdownMenuLabel>
                 <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                    <Link href="/dashboard" className="flex items-center w-full">
+                        <LayoutDashboard className="mr-2 h-4 w-4" />
+                        <span>Dashboard</span>
+                    </Link>
+                </DropdownMenuItem>
                 <DropdownMenuItem>
                 <User className="mr-2 h-4 w-4" />
                 <span>Profile</span>
@@ -142,6 +149,14 @@ export default function Header() {
                 <Building className="h-6 w-6 text-primary" />
                 <span className="sr-only">RentVerify</span>
               </div>
+              {isLoggedIn && (
+                <SheetClose asChild>
+                    <Link href="/dashboard" className="flex items-center gap-4 px-2.5 text-foreground hover:text-foreground">
+                        <LayoutDashboard className="h-5 w-5" />
+                        Dashboard
+                    </Link>
+                </SheetClose>
+              )}
               {navLinks.map(({ href, label, icon: Icon }) => (
                 <SheetClose key={href} asChild>
                   <Link
