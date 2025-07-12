@@ -58,40 +58,37 @@ export async function recommendListings(input: RecommendListingsInput): Promise<
   return recommendListingsFlow(input);
 }
 
-const prompt = ai.definePrompt({
-  name: 'recommendListingsPrompt',
-  input: {schema: RecommendListingsInputSchema},
-  output: {schema: RecommendListingsOutputSchema},
-  prompt: `You are an expert rental recommendation agent.
-
-  Your task is to find up to 3 properties from the provided list of available properties that are a good match for the user, based on their preferences and the property they are currently viewing.
-
-  **User Preferences:** {{{userPreferences}}}
-  **Search History / Current Context:** {{{searchHistory}}}
-
-  **IMPORTANT:** The user is currently viewing the property with ID {{{currentListingId}}}. Do NOT include this property in your recommendations.
-
-  Here is the full list of available properties you can choose from:
-  ---
-  {{{json (getAvailableListings currentListingId)}}}
-  ---
-
-  Analyze the user's information and select the three best-matching properties from the list above. Return them as a structured array.
-  `,
-});
-
 const recommendListingsFlow = ai.defineFlow(
   {
     name: 'recommendListingsFlow',
     inputSchema: RecommendListingsInputSchema,
     outputSchema: RecommendListingsOutputSchema,
-    dependencies: {
-        getAvailableListings: (currentListingId: string) => {
-             return JSON.stringify(listings.filter(l => l.id !== currentListingId));
-        }
-    }
   },
   async input => {
+    const availableListings = listings.filter(l => l.id !== input.currentListingId);
+    
+    const prompt = ai.definePrompt({
+      name: 'recommendListingsPrompt',
+      input: {schema: RecommendListingsInputSchema},
+      output: {schema: RecommendListingsOutputSchema},
+      prompt: `You are an expert rental recommendation agent.
+
+      Your task is to find up to 3 properties from the provided list of available properties that are a good match for the user, based on their preferences and the property they are currently viewing.
+
+      **User Preferences:** {{{userPreferences}}}
+      **Search History / Current Context:** {{{searchHistory}}}
+
+      **IMPORTANT:** The user is currently viewing the property with ID {{{currentListingId}}}. Do NOT include this property in your recommendations.
+
+      Here is the full list of available properties you can choose from:
+      ---
+      ${JSON.stringify(availableListings)}
+      ---
+
+      Analyze the user's information and select the three best-matching properties from the list above. Return them as a structured array.
+      `,
+    });
+
     const {output} = await prompt(input);
     return output!;
   }
