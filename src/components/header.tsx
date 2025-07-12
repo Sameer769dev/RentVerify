@@ -138,6 +138,12 @@ export default function Header() {
                   </Link>
                 </SheetClose>
               ))}
+               <SheetClose asChild>
+                 <Link href="/verify-kyc" className="flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground">
+                    <ShieldCheck className="h-5 w-5" />
+                    KYC Verification
+                 </Link>
+              </SheetClose>
             </nav>
           </SheetContent>
         </Sheet>
