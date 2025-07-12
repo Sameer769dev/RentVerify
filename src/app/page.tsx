@@ -1,13 +1,15 @@
 
+
 "use client";
 
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardTitle } from "@/components/ui/card"
 import { Search, Home, PlusCircle, ShieldCheck, HeartHandshake, Zap, UserMinus } from "lucide-react"
 import { listings } from "@/lib/mock-data"
 import ListingCard from "@/components/listing-card"
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 const features = [
   {
@@ -32,7 +34,7 @@ const actionCards = [
         icon: <Home className="h-8 w-8 text-primary" />,
         title: "Rent a Property",
         description: "Find your perfect home from our list of verified properties.",
-        href: "/",
+        href: "/search",
         cta: "Browse Listings"
     },
     {
@@ -52,7 +54,13 @@ const actionCards = [
 ]
 
 export default function HomePage() {
+  const router = useRouter();
   const latestVerifiedListings = listings.filter(l => l.verified).slice(0, 4);
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    router.push("/search");
+  }
 
   return (
     <div className="flex-1 w-full">
@@ -66,17 +74,17 @@ export default function HomePage() {
                   Discover verified properties and connect directly with owners. No brokers, no hassle.
               </p>
               <div className="mt-8 max-w-xl mx-auto">
-                  <div className="relative">
+                  <form onSubmit={handleSearch} className="relative">
                       <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                       <Input
                           type="search"
                           placeholder="Search by City, Area or Property Type"
                           className="w-full h-14 pl-12 pr-32 rounded-full shadow-lg"
                       />
-                      <Button size="lg" className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-full">
+                      <Button type="submit" size="lg" className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-full">
                           Search
                       </Button>
-                  </div>
+                  </form>
               </div>
           </div>
       </section>
@@ -119,7 +127,7 @@ export default function HomePage() {
           </div>
           <div className="mt-12 text-center">
             <Button size="lg" variant="outline" asChild>
-                <Link href="/">View All Listings</Link>
+                <Link href="/search">View All Listings</Link>
             </Button>
           </div>
         </div>

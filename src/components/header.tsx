@@ -12,6 +12,7 @@ import {
   LogOut,
   Building,
   PlusCircle,
+  Search,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
@@ -30,7 +31,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 
 const navLinks = [
-  { href: "/", label: "Listings", icon: Home },
+  { href: "/search", label: "Listings", icon: Search },
   { href: "/messages", label: "Messages", icon: MessageSquare },
   { href: "/contracts", label: "Contracts", icon: FileText },
 ]
