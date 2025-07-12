@@ -44,7 +44,7 @@ export default function Header() {
           href="/"
           className="text-lg font-bold text-foreground transition-colors hover:text-primary"
         >
-          RentVerify
+          GharBhada.com
         </Link>
       </div>
 
@@ -110,7 +110,7 @@ export default function Header() {
             <nav className="grid gap-6 text-lg font-medium">
               <div className="flex items-center gap-2 text-lg font-semibold">
                 <Building className="h-6 w-6 text-primary" />
-                <span className="sr-only">RentVerify</span>
+                <span className="sr-only">GharBhada.com</span>
               </div>
               {navLinks.map(({ href, label, icon: Icon }) => (
                 <SheetClose key={href} asChild>
