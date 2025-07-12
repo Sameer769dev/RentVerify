@@ -5,6 +5,7 @@ import Header from '@/components/header';
 import Footer from '@/components/footer';
 import { Inter } from 'next/font/google';
 import { cn } from '@/lib/utils';
+import { AuthProvider } from '@/components/auth-provider';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
 
@@ -29,10 +30,13 @@ export default function RootLayout({
           inter.variable
         )}
       >
-        <Header />
-        <main className="flex-grow">{children}</main>
-        <Footer />
-        <Toaster />
+        <AuthProvider>
+          <div id="recaptcha-container"></div>
+          <Header />
+          <main className="flex-grow">{children}</main>
+          <Footer />
+          <Toaster />
+        </AuthProvider>
       </body>
     </html>
   );

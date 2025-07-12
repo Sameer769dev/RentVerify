@@ -1,3 +1,4 @@
+import type { RecaptchaVerifier } from "firebase/auth";
 
 export type Listing = {
   id: string;
@@ -34,3 +35,9 @@ export type BlogPost = {
   readTime: string;
   tags: string[];
 };
+
+declare global {
+  interface Window {
+    recaptchaVerifier: RecaptchaVerifier;
+  }
+}

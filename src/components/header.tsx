@@ -2,7 +2,6 @@
 "use client"
 
 import Link from "next/link"
-import { useSearchParams } from "next/navigation"
 import * as React from "react"
 import {
   Home,
@@ -35,6 +34,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { useRouter } from "next/navigation"
+import { useAuth } from "./auth-provider"
+import { auth } from "@/lib/firebase"
 
 const navLinks = [
   { href: "/search", label: "Listings", icon: Search },
@@ -44,21 +45,11 @@ const navLinks = [
 ]
 
 export default function Header() {
-  const [isLoggedIn, setIsLoggedIn] = React.useState(false);
-  const searchParams = useSearchParams();
+  const { user } = useAuth();
   const router = useRouter();
-
-  React.useEffect(() => {
-    // This is a simulation of auth state.
-    // In a real app, you'd check a session cookie or context.
-    if (searchParams.get('loggedin') === 'true') {
-      setIsLoggedIn(true);
-    }
-  }, [searchParams]);
   
-  const handleLogout = () => {
-    setIsLoggedIn(false);
-    // In a real app, you would also clear the session/token.
+  const handleLogout = async () => {
+    await auth.signOut();
     router.push('/');
   }
 
@@ -94,7 +85,7 @@ export default function Header() {
             </Link>
           </Button>
 
-        {isLoggedIn ? (
+        {user ? (
             <DropdownMenu>
             <DropdownMenuTrigger asChild>
                 <Button variant="secondary" size="icon" className="rounded-full">
@@ -157,7 +148,7 @@ export default function Header() {
                 <Building className="h-6 w-6 text-primary" />
                 <span className="sr-only">RentVerify</span>
               </div>
-              {isLoggedIn && (
+              {user && (
                 <SheetClose asChild>
                     <Link href="/dashboard" className="flex items-center gap-4 px-2.5 text-foreground hover:text-foreground">
                         <LayoutDashboard className="h-5 w-5" />
@@ -165,7 +156,7 @@ export default function Header() {
                     </Link>
                 </SheetClose>
               )}
-               {isLoggedIn && (
+               {user && (
                 <SheetClose asChild>
                     <Link href="/profile" className="flex items-center gap-4 px-2.5 text-foreground hover:text-foreground">
                         <User className="h-5 w-5" />
