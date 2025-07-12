@@ -12,10 +12,11 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from '@/components/ui/checkbox';
-import { Upload, Home, Loader2, FileImage, Wand2, X } from "lucide-react";
+import { Upload, Home, Loader2, FileImage, Wand2, X, Camera } from "lucide-react";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { toast } from '@/hooks/use-toast';
 import { generateListingDescription } from '@/ai/flows/generate-listing-description-flow';
+import { generateListingImage } from '@/ai/flows/generate-listing-image-flow';
 import Image from 'next/image';
 import TextareaAutosize from 'react-textarea-autosize';
 
@@ -32,7 +33,7 @@ const listingSchema = z.object({
   baths: z.coerce.number().min(1, "Number of baths is required."),
   type: z.enum(['House', 'Flat', 'Room'], { required_error: "Please select a property type." }),
   amenities: z.array(z.string()).optional(),
-  photos: z.array(z.custom<File>()).min(1, "Please upload at least one property photo."),
+  photos: z.array(z.custom<File | string>()).min(1, "Please upload at least one property photo."),
   keywords: z.string().optional(),
 });
 
@@ -40,7 +41,8 @@ type ListingFormData = z.infer<typeof listingSchema>;
 
 export default function ListPropertyPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isGenerating, setIsGenerating] = useState(false);
+  const [isGeneratingDesc, setIsGeneratingDesc] = useState(false);
+  const [isGeneratingImage, setIsGeneratingImage] = useState(false);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -59,7 +61,7 @@ export default function ListPropertyPage() {
   });
 
   const handleGenerateDescription = async () => {
-    setIsGenerating(true);
+    setIsGeneratingDesc(true);
     const { keywords, type, beds, city } = form.getValues();
 
     if (!type || !beds || !city) {
@@ -68,7 +70,7 @@ export default function ListPropertyPage() {
             description: "Please fill in Property Type, Bedrooms, and City to generate a description.",
             variant: "destructive",
         });
-        setIsGenerating(false);
+        setIsGeneratingDesc(false);
         return;
     }
 
@@ -92,7 +94,48 @@ export default function ListPropertyPage() {
         variant: "destructive",
       });
     } finally {
-      setIsGenerating(false);
+      setIsGeneratingDesc(false);
+    }
+  };
+
+  const handleGenerateImage = async () => {
+    setIsGeneratingImage(true);
+    const description = form.getValues('description');
+    if (description.length < 20) {
+      toast({
+        title: "Description Too Short",
+        description: "Please write a more detailed description (at least 20 characters) to generate an image.",
+        variant: "destructive"
+      });
+      setIsGeneratingImage(false);
+      return;
+    }
+    
+    try {
+      const result = await generateListingImage({ description });
+      // Convert data URI to Blob/File to be compatible with form state
+      const response = await fetch(result.imageDataUri);
+      const blob = await response.blob();
+      const file = new File([blob], `ai-generated-${Date.now()}.png`, { type: blob.type });
+
+      // Add to form state and previews
+      const currentFiles = form.getValues('photos') || [];
+      form.setValue('photos', [...currentFiles, file], { shouldValidate: true });
+      setImagePreviews(prev => [...prev, result.imageDataUri]);
+
+      toast({
+        title: "Image Generated!",
+        description: "AI has created an image based on your description."
+      });
+    } catch (error) {
+      console.error("Image generation failed:", error);
+      toast({
+        title: "An error occurred",
+        description: "Could not generate an image. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsGeneratingImage(false);
     }
   };
   
@@ -186,8 +229,8 @@ export default function ListPropertyPage() {
                     </FormItem>
                   )}
                 />
-                 <Button type="button" variant="outline" size="sm" onClick={handleGenerateDescription} disabled={isGenerating}>
-                      {isGenerating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Wand2 className="mr-2 h-4 w-4" />}
+                 <Button type="button" variant="outline" size="sm" onClick={handleGenerateDescription} disabled={isGeneratingDesc}>
+                      {isGeneratingDesc ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Wand2 className="mr-2 h-4 w-4" />}
                       Generate Description with AI
                  </Button>
               </div>
@@ -347,12 +390,9 @@ export default function ListPropertyPage() {
                 )}
               />
 
-              <FormField
-                control={form.control}
-                name="photos"
-                render={() => (
-                  <FormItem>
-                    <FormLabel>Property Photos</FormLabel>
+              <FormItem>
+                <FormLabel>Property Photos</FormLabel>
+                  <div className="space-y-4">
                      {imagePreviews.length > 0 && (
                         <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4">
                            {imagePreviews.map((src, index) => (
@@ -371,30 +411,31 @@ export default function ListPropertyPage() {
                             ))}
                         </div>
                      )}
-                    <FormControl>
-                      <div className="flex items-center justify-center w-full">
-                        <label htmlFor="photoUpload" className="flex flex-col items-center justify-center w-full h-40 border-2 border-dashed rounded-lg cursor-pointer bg-secondary/50 hover:bg-secondary/80">
-                          <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                            <Upload className="w-10 h-10 mb-4 text-muted-foreground" />
-                            <p className="mb-2 text-sm text-muted-foreground"><span className="font-semibold">Click to upload photos</span></p>
-                            <p className="text-xs text-muted-foreground">PNG, JPG or JPEG (MAX. 5MB)</p>
-                          </div>
-                          <Input
-                            id="photoUpload"
-                            type="file"
-                            multiple
-                            className="hidden"
-                            ref={fileInputRef}
-                            accept="image/png, image/jpeg, image/jpg"
-                            onChange={handleFileChange}
-                          />
-                        </label>
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                     <div className="flex items-center justify-center w-full">
+                      <label htmlFor="photoUpload" className="flex flex-col items-center justify-center w-full h-40 border-2 border-dashed rounded-lg cursor-pointer bg-secondary/50 hover:bg-secondary/80">
+                        <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                          <Upload className="w-10 h-10 mb-4 text-muted-foreground" />
+                          <p className="mb-2 text-sm text-muted-foreground"><span className="font-semibold">Click to upload photos</span></p>
+                          <p className="text-xs text-muted-foreground">PNG, JPG or JPEG (MAX. 5MB)</p>
+                        </div>
+                        <Input
+                          id="photoUpload"
+                          type="file"
+                          multiple
+                          className="hidden"
+                          ref={fileInputRef}
+                          accept="image/png, image/jpeg, image/jpg"
+                          onChange={handleFileChange}
+                        />
+                      </label>
+                    </div>
+                    <Button type="button" variant="outline" className="w-full" onClick={handleGenerateImage} disabled={isGeneratingImage}>
+                      {isGeneratingImage ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Camera className="mr-2 h-4 w-4" />}
+                      Generate Image with AI
+                    </Button>
+                  </div>
+                <FormMessage>{form.formState.errors.photos?.message}</FormMessage>
+              </FormItem>
 
               <Button type="submit" className="w-full !mt-10" size="lg" disabled={isSubmitting}>
                 {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
