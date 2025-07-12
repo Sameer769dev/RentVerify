@@ -34,6 +34,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { useRouter } from "next/navigation"
 
 const navLinks = [
   { href: "/search", label: "Listings", icon: Search },
@@ -45,6 +46,7 @@ const navLinks = [
 export default function Header() {
   const [isLoggedIn, setIsLoggedIn] = React.useState(false);
   const searchParams = useSearchParams();
+  const router = useRouter();
 
   React.useEffect(() => {
     // This is a simulation of auth state.
@@ -53,6 +55,12 @@ export default function Header() {
       setIsLoggedIn(true);
     }
   }, [searchParams]);
+  
+  const handleLogout = () => {
+    setIsLoggedIn(false);
+    // In a real app, you would also clear the session/token.
+    router.push('/');
+  }
 
   return (
     <header className="sticky top-0 z-50 flex h-16 items-center gap-4 border-b bg-background/80 backdrop-blur-sm px-4 md:px-6">
@@ -116,11 +124,9 @@ export default function Header() {
                 </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => setIsLoggedIn(false)}>
-                    <Link href="/" className="flex items-center w-full">
-                        <LogOut className="mr-2 h-4 w-4" />
-                        <span>Log out</span>
-                    </Link>
+                <DropdownMenuItem onClick={handleLogout} className="cursor-pointer">
+                    <LogOut className="mr-2 h-4 w-4" />
+                    <span>Log out</span>
                 </DropdownMenuItem>
             </DropdownMenuContent>
             </DropdownMenu>
