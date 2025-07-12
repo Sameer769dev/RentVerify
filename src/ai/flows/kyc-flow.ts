@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview A Know Your Customer (KYC) AI agent.
@@ -15,10 +16,16 @@ const KycInputSchema = z.object({
   lastName: z.string().describe('The last name of the user.'),
   address: z.string().describe('The full address of the user.'),
   documentType: z.enum(['passport', 'drivers_license', 'national_id']).describe('The type of document being submitted.'),
-  documentPhotoDataUri: z
+  documentFrontPhotoDataUri: z
     .string()
     .describe(
-      "A photo of the user's identification document, as a data URI that must include a MIME type and use Base64 encoding. Expected format: 'data:<mimetype>;base64,<encoded_data>'."
+      "A photo of the front of the user's identification document, as a data URI that must include a MIME type and use Base64 encoding. Expected format: 'data:<mimetype>;base64,<encoded_data>'."
+    ),
+  documentBackPhotoDataUri: z
+    .string()
+    .optional()
+    .describe(
+      "A photo of the back of the user's identification document, as a data URI that must include a MIME type and use Base64 encoding. Expected format: 'data:<mimetype>;base64,<encoded_data>'. This may not be present for all document types (e.g., passport)."
     ),
 });
 export type KycInput = z.infer<typeof KycInputSchema>;
@@ -45,19 +52,20 @@ const prompt = ai.definePrompt({
   name: 'kycPrompt',
   input: {schema: KycInputSchema},
   output: {schema: KycOutputSchema},
-  prompt: `You are a highly advanced KYC verification agent. Your task is to analyze the provided user information and the image of their identification document to verify their identity.
+  prompt: `You are a highly advanced KYC verification agent. Your task is to analyze the provided user information and the image(s) of their identification document to verify their identity.
 
   User Provided Information:
   - Name: {{{firstName}}} {{{lastName}}}
   - Address: {{{address}}}
   - Document Type: {{{documentType}}}
 
-  Document Image:
-  {{media url=documentPhotoDataUri}}
+  Document Images:
+  - Front: {{media url=documentFrontPhotoDataUri}}
+  {{#if documentBackPhotoDataUri}}- Back: {{media url=documentBackPhotoDataUri}}{{/if}}
 
   Please perform the following steps:
-  1.  Carefully analyze the document image to determine its authenticity. Look for signs of tampering, low quality, or if it's not a real ID document.
-  2.  Extract the following information from the document: First Name, Last Name, Address, Document Number, Date of Birth, and Expiration Date.
+  1.  Carefully analyze the document images (front and back, if provided) to determine authenticity. Look for signs of tampering, low quality, or if it's not a real ID document.
+  2.  Extract the following information from the document(s): First Name, Last Name, Address, Document Number, Date of Birth, and Expiration Date. Information may be split between the front and back.
   3.  Compare the extracted information with the user-provided information.
   4.  Determine if the verification is successful based on the following criteria:
       - The document appears authentic.

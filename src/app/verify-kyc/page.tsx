@@ -24,7 +24,8 @@ const kycSchema = z.object({
   docType: z.enum(['passport', 'drivers_license', 'national_id'], {
     required_error: "Please select a document type.",
   }),
-  document: z.custom<File>(val => val instanceof File, "Please upload a document image."),
+  documentFront: z.custom<File>(val => val instanceof File, "Please upload the front of your document."),
+  documentBack: z.custom<File>(val => val instanceof File, "Please upload the back of your document.").optional(),
   terms: z.boolean().refine(val => val === true, {
     message: "You must agree to the terms and conditions.",
   }),
@@ -35,8 +36,7 @@ type KycFormData = z.infer<typeof kycSchema>;
 export default function VerifyKycPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [verificationResult, setVerificationResult] = useState<KycOutput | null>(null);
-  const [fileName, setFileName] = useState<string | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [fileNames, setFileNames] = useState<{ front: string | null; back: string | null }>({ front: null, back: null });
 
   const form = useForm<KycFormData>({
     resolver: zodResolver(kycSchema),
@@ -47,6 +47,8 @@ export default function VerifyKycPage() {
       terms: false,
     },
   });
+  
+  const docType = form.watch("docType");
 
   const fileToDataUri = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
@@ -60,14 +62,24 @@ export default function VerifyKycPage() {
   const onSubmit = async (data: KycFormData) => {
     setIsLoading(true);
     setVerificationResult(null);
+
+    if(docType !== 'passport' && !data.documentBack) {
+        form.setError("documentBack", { type: "manual", message: "Back of document is required for this document type." });
+        setIsLoading(false);
+        return;
+    }
+
     try {
-      const documentPhotoDataUri = await fileToDataUri(data.document);
+      const documentFrontPhotoDataUri = await fileToDataUri(data.documentFront);
+      const documentBackPhotoDataUri = data.documentBack ? await fileToDataUri(data.documentBack) : undefined;
+      
       const result = await verifyKyc({
         firstName: data.firstName,
         lastName: data.lastName,
         address: data.address,
         documentType: data.docType,
-        documentPhotoDataUri,
+        documentFrontPhotoDataUri,
+        documentBackPhotoDataUri,
       });
       setVerificationResult(result);
       toast({
@@ -86,6 +98,47 @@ export default function VerifyKycPage() {
       setIsLoading(false);
     }
   };
+
+  const renderFileUpload = (field: any, name: 'front' | 'back', label: string, placeholder: string) => (
+     <FormItem>
+        <FormLabel>{label}</FormLabel>
+        <FormControl>
+            <div className="flex items-center justify-center w-full">
+            <label htmlFor={`${name}DocUpload`} className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer bg-secondary/50 hover:bg-secondary/80">
+                <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                {fileNames[name] ? (
+                    <>
+                    <FileImage className="w-8 h-8 mb-4 text-primary" />
+                    <p className="mb-2 text-sm text-foreground">{fileNames[name]}</p>
+                    <p className="text-xs text-muted-foreground">Click to change file</p>
+                    </>
+                ) : (
+                    <>
+                    <Upload className="w-8 h-8 mb-4 text-muted-foreground" />
+                    <p className="mb-2 text-sm text-muted-foreground"><span className="font-semibold">{placeholder}</span></p>
+                    <p className="text-xs text-muted-foreground">Clear photo (PNG, JPG)</p>
+                    </>
+                )}
+                </div>
+                <Input
+                id={`${name}DocUpload`}
+                type="file"
+                className="hidden"
+                accept="image/png, image/jpeg, image/jpg"
+                onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                    field.onChange(file);
+                    setFileNames(prev => ({...prev, [name]: file.name}));
+                    }
+                }}
+                />
+            </label>
+            </div>
+        </FormControl>
+        <FormMessage />
+    </FormItem>
+  )
 
   return (
     <div className="container mx-auto px-4 py-8 sm:px-6 lg:px-8 max-w-2xl">
@@ -115,133 +168,43 @@ export default function VerifyKycPage() {
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="firstName"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>First Name</FormLabel>
-                        <FormControl>
-                          <Input placeholder="John" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="lastName"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Last Name</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Doe" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                  <FormField control={form.control} name="firstName" render={({ field }) => (
+                      <FormItem><FormLabel>First Name</FormLabel><FormControl><Input placeholder="John" {...field} /></FormControl><FormMessage /></FormItem>
+                  )} />
+                  <FormField control={form.control} name="lastName" render={({ field }) => (
+                      <FormItem><FormLabel>Last Name</FormLabel><FormControl><Input placeholder="Doe" {...field} /></FormControl><FormMessage /></FormItem>
+                  )} />
                 </div>
-                <FormField
-                  control={form.control}
-                  name="address"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Full Address</FormLabel>
-                      <FormControl>
-                        <Input placeholder="123 Main St, Metropolis, USA" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="docType"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Document Type</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select a document type" />
-                          </SelectTrigger>
-                        </FormControl>
+                <FormField control={form.control} name="address" render={({ field }) => (
+                    <FormItem><FormLabel>Full Address</FormLabel><FormControl><Input placeholder="123 Main St, Metropolis, USA" {...field} /></FormControl><FormMessage /></FormItem>
+                )} />
+                <FormField control={form.control} name="docType" render={({ field }) => (
+                    <FormItem><FormLabel>Document Type</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl><SelectTrigger><SelectValue placeholder="Select a document type" /></SelectTrigger></FormControl>
                         <SelectContent>
-                          <SelectItem value="passport">Passport</SelectItem>
-                          <SelectItem value="drivers_license">Driver's License</SelectItem>
-                          <SelectItem value="national_id">National ID Card</SelectItem>
+                            <SelectItem value="passport">Passport</SelectItem>
+                            <SelectItem value="drivers_license">Driver's License</SelectItem>
+                            <SelectItem value="national_id">National ID Card</SelectItem>
                         </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="document"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Upload Document Photo</FormLabel>
-                      <FormControl>
-                        <div className="flex items-center justify-center w-full">
-                          <label htmlFor="docUpload" className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer bg-secondary/50 hover:bg-secondary/80">
-                            <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                              {fileName ? (
-                                <>
-                                  <FileImage className="w-8 h-8 mb-4 text-primary" />
-                                  <p className="mb-2 text-sm text-foreground">{fileName}</p>
-                                  <p className="text-xs text-muted-foreground">Click to change file</p>
-                                </>
-                              ) : (
-                                <>
-                                  <Upload className="w-8 h-8 mb-4 text-muted-foreground" />
-                                  <p className="mb-2 text-sm text-muted-foreground"><span className="font-semibold">Click to upload</span> or drag and drop</p>
-                                  <p className="text-xs text-muted-foreground">Clear photo of your ID (PNG, JPG)</p>
-                                </>
-                              )}
-                            </div>
-                            <Input
-                              id="docUpload"
-                              type="file"
-                              className="hidden"
-                              ref={fileInputRef}
-                              accept="image/png, image/jpeg, image/jpg"
-                              onChange={(e) => {
-                                const file = e.target.files?.[0];
-                                if (file) {
-                                  field.onChange(file);
-                                  setFileName(file.name);
-                                }
-                              }}
-                            />
-                          </label>
-                        </div>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="terms"
-                  render={({ field }) => (
+                    </Select><FormMessage /></FormItem>
+                )} />
+                
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <FormField control={form.control} name="documentFront" render={({ field }) => renderFileUpload(field, 'front', 'Document Front', 'Click to upload front')} />
+                    {docType && docType !== 'passport' && (
+                        <FormField control={form.control} name="documentBack" render={({ field }) => renderFileUpload(field, 'back', 'Document Back', 'Click to upload back')} />
+                    )}
+                </div>
+
+                <FormField control={form.control} name="terms" render={({ field }) => (
                     <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-                       <FormControl>
-                         <Checkbox
-                           checked={field.value}
-                           onCheckedChange={field.onChange}
-                         />
-                       </FormControl>
+                       <FormControl><Checkbox checked={field.value} onCheckedChange={field.onChange} /></FormControl>
                        <div className="space-y-1 leading-none">
-                         <FormLabel>
-                           I agree to the <Link href="/contracts" className="text-primary hover:underline">digital contract terms</Link>.
-                         </FormLabel>
+                         <FormLabel>I agree to the <Link href="/contracts" className="text-primary hover:underline">digital contract terms</Link>.</FormLabel>
                          <FormMessage />
                        </div>
                     </FormItem>
-                  )}
-                />
+                )} />
 
                 <Button type="submit" className="w-full" disabled={isLoading}>
                   {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
