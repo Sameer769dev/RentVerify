@@ -14,6 +14,7 @@ import {
   PlusCircle,
   Search,
   LogIn,
+  Newspaper,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
@@ -35,6 +36,7 @@ const navLinks = [
   { href: "/search", label: "Listings", icon: Search },
   { href: "/messages", label: "Messages", icon: MessageSquare },
   { href: "/contracts", label: "Contracts", icon: FileText },
+  { href: "/blog", label: "Blog", icon: Newspaper },
 ]
 
 export default function Header() {

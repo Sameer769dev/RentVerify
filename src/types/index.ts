@@ -1,3 +1,4 @@
+
 export type Listing = {
   id: string;
   title: string;
@@ -16,4 +17,20 @@ export type Listing = {
   amenities: string[];
   verified: boolean;
   type: 'House' | 'Flat' | 'Room';
+};
+
+export type BlogPost = {
+  slug: string;
+  title: string;
+  excerpt: string;
+  content: string;
+  image: string;
+  author: {
+    name: string;
+    avatar: string;
+    bio: string;
+  };
+  date: string;
+  readTime: string;
+  tags: string[];
 };
