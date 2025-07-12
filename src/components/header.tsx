@@ -1,3 +1,4 @@
+
 "use client"
 
 import Link from "next/link"
@@ -10,6 +11,7 @@ import {
   User,
   LogOut,
   Building,
+  PlusCircle,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
@@ -58,13 +60,13 @@ export default function Header() {
         ))}
       </nav>
 
-      <div className="flex items-center gap-4 md:ml-auto">
-        <Button asChild variant="outline" className="hidden sm:inline-flex">
-          <Link href="/verify-kyc">
-            <ShieldCheck className="mr-2 h-4 w-4" />
-            Verify KYC
-          </Link>
-        </Button>
+      <div className="flex items-center gap-2 md:ml-4">
+         <Button asChild>
+            <Link href="/list-property">
+              <PlusCircle className="mr-2 h-4 w-4" />
+              List a Property
+            </Link>
+          </Button>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="secondary" size="icon" className="rounded-full">
@@ -79,7 +81,7 @@ export default function Header() {
               <User className="mr-2 h-4 w-4" />
               <span>Profile</span>
             </DropdownMenuItem>
-            <DropdownMenuItem asChild className="sm:hidden">
+            <DropdownMenuItem asChild>
               <Link href="/verify-kyc">
                 <ShieldCheck className="mr-2 h-4 w-4" />
                 <span>Verify KYC</span>
