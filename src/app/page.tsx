@@ -51,7 +51,7 @@ const actionCards = [
     }
 ]
 
-export default function Home() {
+export default function HomePage() {
   const latestVerifiedListings = listings.filter(l => l.verified).slice(0, 4);
 
   return (
