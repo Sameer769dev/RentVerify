@@ -9,9 +9,27 @@ import { SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, S
 import { Slider } from "@/components/ui/slider";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
-const amenities = ["Furnished", "Pet Friendly", "24/7 Water"];
+const amenitiesList = ["Wifi", "Kitchen", "Washer", "Dryer", "Air Conditioning", "Heating", "Parking", "Garden", "Pet Friendly", "Pool", "Gym", "Desk", "Elevator"];
 
-export function SearchFilters() {
+interface SearchFiltersProps {
+    priceRange: number;
+    propertyType: string;
+    selectedAmenities: string[];
+    onPriceChange: (value: number[]) => void;
+    onPropertyTypeChange: (value: string) => void;
+    onAmenityChange: (amenity: string, checked: boolean) => void;
+    onApplyFilters: () => void;
+}
+
+export function SearchFilters({
+    priceRange,
+    propertyType,
+    selectedAmenities,
+    onPriceChange,
+    onPropertyTypeChange,
+    onAmenityChange,
+    onApplyFilters
+}: SearchFiltersProps) {
     return (
         <>
             <SidebarHeader>
@@ -22,12 +40,17 @@ export function SearchFilters() {
                 <ScrollArea>
                     <div className="flex flex-col gap-4 p-4">
                         <SidebarGroup>
-                            <SidebarGroupLabel>Price Range</SidebarGroupLabel>
+                            <SidebarGroupLabel>Price Range (Max)</SidebarGroupLabel>
                             <SidebarGroupContent>
-                                <Slider defaultValue={[500]} max={10000} step={100} />
+                                <Slider 
+                                    value={[priceRange]} 
+                                    onValueChange={onPriceChange} 
+                                    max={10000} 
+                                    step={100} 
+                                />
                                 <div className="flex justify-between text-sm text-muted-foreground mt-2">
-                                    <span>$500</span>
-                                    <span>$10000</span>
+                                    <span>$0</span>
+                                    <span>${priceRange.toLocaleString()}</span>
                                 </div>
                             </SidebarGroupContent>
                         </SidebarGroup>
@@ -35,7 +58,7 @@ export function SearchFilters() {
                         <SidebarGroup>
                             <SidebarGroupLabel>Property Type</SidebarGroupLabel>
                             <SidebarGroupContent>
-                                <RadioGroup defaultValue="all">
+                                <RadioGroup value={propertyType} onValueChange={onPropertyTypeChange}>
                                     <div className="flex items-center space-x-2">
                                         <RadioGroupItem value="all" id="t-all" />
                                         <Label htmlFor="t-all">All</Label>
@@ -59,16 +82,20 @@ export function SearchFilters() {
                         <SidebarGroup>
                             <SidebarGroupLabel>Amenities</SidebarGroupLabel>
                             <SidebarGroupContent className="space-y-2">
-                                {amenities.map(amenity => (
+                                {amenitiesList.slice(0, 5).map(amenity => ( // Show a subset for brevity
                                     <div key={amenity} className="flex items-center space-x-2">
-                                        <Checkbox id={amenity.toLowerCase().replace(' ', '-')}/>
-                                        <Label htmlFor={amenity.toLowerCase().replace(' ', '-')} className="font-normal">{amenity}</Label>
+                                        <Checkbox 
+                                            id={amenity.toLowerCase().replace(/\s/g, '-')}
+                                            checked={selectedAmenities.includes(amenity)}
+                                            onCheckedChange={(checked) => onAmenityChange(amenity, !!checked)}
+                                        />
+                                        <Label htmlFor={amenity.toLowerCase().replace(/\s/g, '-')} className="font-normal">{amenity}</Label>
                                     </div>
                                 ))}
                             </SidebarGroupContent>
                         </SidebarGroup>
 
-                        <Button className="w-full mt-4">Apply Filters</Button>
+                        <Button onClick={onApplyFilters} className="w-full mt-4">Apply Filters</Button>
                     </div>
                 </ScrollArea>
             </SidebarContent>
