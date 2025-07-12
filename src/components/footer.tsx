@@ -10,10 +10,10 @@ export default function Footer() {
           <div>
             <div className="flex items-center gap-2">
               <Building className="h-8 w-8 text-primary" />
-              <span className="text-2xl font-bold">GharBhada.com</span>
+              <span className="text-2xl font-bold">RentVerify</span>
             </div>
             <p className="mt-4 max-w-xs text-sm text-muted-foreground">
-              GharBhada.com – Verified Rental Listing. Your trusted partner in finding the perfect rental home.
+              RentVerify – Verified Rental Listing. Your trusted partner in finding the perfect rental home.
             </p>
             <div className="mt-8 flex space-x-6 text-muted-foreground">
               <Link href="#" className="hover:text-primary"><span className="sr-only">Twitter</span><Twitter /></Link>
@@ -50,7 +50,7 @@ export default function Footer() {
           </div>
         </div>
         <div className="mt-8 border-t pt-8 text-center text-sm text-muted-foreground">
-          <p>&copy; {new Date().getFullYear()} GharBhada.com. All rights reserved.</p>
+          <p>&copy; {new Date().getFullYear()} RentVerify. All rights reserved.</p>
         </div>
       </div>
     </footer>

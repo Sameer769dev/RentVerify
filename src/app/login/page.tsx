@@ -44,7 +44,7 @@ export default function LoginPage() {
                 <div className="bg-primary p-10 text-primary-foreground flex flex-col justify-center">
                     <div className="flex items-center gap-3 mb-4">
                         <Building className="h-10 w-10"/>
-                        <h1 className="text-3xl font-bold">GharBhada.com</h1>
+                        <h1 className="text-3xl font-bold">RentVerify</h1>
                     </div>
                     <p className="text-lg mb-2">Find Your Perfect Rental.</p>
                     <p className="text-primary-foreground/80">

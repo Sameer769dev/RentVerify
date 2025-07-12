@@ -133,12 +133,12 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Why GharBhada? Section */}
+      {/* Why RentVerify? Section */}
       <section className="py-16 bg-background sm:py-20">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-              Why Choose GharBhada.com?
+              Why Choose RentVerify?
             </h2>
             <p className="mt-3 max-w-2xl mx-auto text-lg text-muted-foreground">
               We are committed to making your rental journey seamless and secure.
