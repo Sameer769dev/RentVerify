@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -8,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Loader2, Sparkles } from "lucide-react";
 import type { Listing } from "@/types";
-import { toast } from "@/hooks/use-toast";
+import { useToast } from "@/hooks/use-toast";
 
 interface SmartRecommendationsProps {
   currentListing: Listing;
@@ -18,6 +19,7 @@ export default function SmartRecommendations({ currentListing }: SmartRecommenda
   const [preferences, setPreferences] = useState("");
   const [recommendations, setRecommendations] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -83,6 +85,11 @@ export default function SmartRecommendations({ currentListing }: SmartRecommenda
             </div>
           </div>
         )}
+         {isLoading && !recommendations && (
+            <div className="mt-6 border-t pt-6 flex justify-center">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>
+          )}
       </CardContent>
     </Card>
   );

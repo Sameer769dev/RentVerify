@@ -1,3 +1,4 @@
+
 import { notFound } from "next/navigation";
 import Image from "next/image";
 import { listings } from "@/lib/mock-data";
@@ -6,6 +7,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { BedDouble, Bath, MapPin, Wifi, Utensils, ParkingCircle, Dog, Wind, ShieldCheck } from "lucide-react";
 import SmartRecommendations from "./components/smart-recommendations";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
 const amenityIcons: { [key: string]: React.ElementType } = {
   Wifi,
@@ -123,7 +126,9 @@ export default function ListingPage({ params }: { params: { id: string } }) {
                 <CardContent className="p-6 text-center">
                     <h2 className="text-xl font-semibold mb-4">Interested in this property?</h2>
                     <p className="text-muted-foreground mb-4">Contact the owner directly to schedule a viewing.</p>
-                    <a href="/messages?to=owner123"><button className="w-full bg-accent text-accent-foreground hover:bg-accent/90 h-10 px-4 py-2 inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium">Message Owner</button></a>
+                     <Button asChild className="w-full" variant="outline">
+                        <Link href="/messages?to=owner123">Message Owner</Link>
+                    </Button>
                 </CardContent>
             </Card>
         </div>
