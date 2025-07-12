@@ -4,12 +4,12 @@ import { listings } from "@/lib/mock-data";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
-import { BedDouble, Bath, MapPin, Wifi, Kitchen, ParkingCircle, Dog, Wind, ShieldCheck } from "lucide-react";
+import { BedDouble, Bath, MapPin, Wifi, Utensils, ParkingCircle, Dog, Wind, ShieldCheck } from "lucide-react";
 import SmartRecommendations from "./components/smart-recommendations";
 
 const amenityIcons: { [key: string]: React.ElementType } = {
   Wifi,
-  Kitchen,
+  Kitchen: Utensils,
   Washer: () => <div className="w-5 h-5 i-lucide-washer" />,
   Dryer: () => <div className="w-5 h-5 i-lucide-dryer" />,
   "Air Conditioning": Wind,
