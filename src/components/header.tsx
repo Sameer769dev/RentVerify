@@ -2,6 +2,8 @@
 "use client"
 
 import Link from "next/link"
+import { useSearchParams } from "next/navigation"
+import * as React from "react"
 import {
   Home,
   Menu,
@@ -40,7 +42,16 @@ const navLinks = [
 ]
 
 export default function Header() {
-  const isLoggedIn = false; // Replace with actual auth state
+  const [isLoggedIn, setIsLoggedIn] = React.useState(false);
+  const searchParams = useSearchParams();
+
+  React.useEffect(() => {
+    // This is a simulation of auth state.
+    // In a real app, you'd check a session cookie or context.
+    if (searchParams.get('loggedin') === 'true') {
+      setIsLoggedIn(true);
+    }
+  }, [searchParams]);
 
   return (
     <header className="sticky top-0 z-50 flex h-16 items-center gap-4 border-b bg-background/80 backdrop-blur-sm px-4 md:px-6">
@@ -96,9 +107,11 @@ export default function Header() {
                 </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem>
-                <LogOut className="mr-2 h-4 w-4" />
-                <span>Log out</span>
+                <DropdownMenuItem onClick={() => setIsLoggedIn(false)}>
+                    <Link href="/" className="flex items-center w-full">
+                        <LogOut className="mr-2 h-4 w-4" />
+                        <span>Log out</span>
+                    </Link>
                 </DropdownMenuItem>
             </DropdownMenuContent>
             </DropdownMenu>

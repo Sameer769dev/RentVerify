@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Separator } from '@/components/ui/separator';
 import { Phone, KeyRound, Handshake, Building } from "lucide-react";
+import { useRouter } from 'next/navigation';
 
 const GoogleIcon = () => (
     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5">
@@ -22,6 +23,7 @@ export default function LoginPage() {
     const [role, setRole] = useState('tenant');
     const [loginStep, setLoginStep] = useState('options'); // 'options' or 'otp'
     const [phoneNumber, setPhoneNumber] = useState('');
+    const router = useRouter();
 
     const handlePhoneSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -34,7 +36,13 @@ export default function LoginPage() {
         e.preventDefault();
         // Here you would verify the OTP
         console.log(`Verifying OTP for ${phoneNumber}`);
-        // On success, redirect the user
+        // On success, redirect the user with a loggedin state
+        router.push('/?loggedin=true');
+    }
+
+    const handleGoogleSignIn = () => {
+        console.log('Simulating Google Sign-in');
+        router.push('/?loggedin=true');
     }
 
   return (
@@ -104,7 +112,7 @@ export default function LoginPage() {
                                     <span className="mx-4 text-xs text-muted-foreground">OR</span>
                                     <Separator className="flex-grow"/>
                                 </div>
-                                <Button variant="outline" className="w-full">
+                                <Button variant="outline" className="w-full" onClick={handleGoogleSignIn}>
                                     <GoogleIcon />
                                     Sign in with Google
                                 </Button>
