@@ -1,180 +1,154 @@
 
 "use client";
 
-import { useState } from "react";
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuRadioGroup, DropdownMenuRadioItem } from "@/components/ui/dropdown-menu"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Label } from "@/components/ui/label"
-import { ListFilter, Search, SlidersHorizontal, BedDouble, ChevronDown } from "lucide-react"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Search, Home, PlusCircle, ShieldCheck, HeartHandshake, Zap, UserMinus } from "lucide-react"
 import { listings } from "@/lib/mock-data"
 import ListingCard from "@/components/listing-card"
-import type { Listing } from "@/types";
+import Link from "next/link";
 
-const allAmenities = Array.from(new Set(listings.flatMap(l => l.amenities)));
+const features = [
+  {
+    icon: <HeartHandshake className="h-10 w-10 text-primary" />,
+    title: "Built on Trust",
+    description: "Every property and owner is verified, ensuring a safe and transparent rental experience for everyone.",
+  },
+  {
+    icon: <Zap className="h-10 w-10 text-primary" />,
+    title: "Unmatched Simplicity",
+    description: "Our platform is designed to be intuitive, making it easy to find a home or list your property in minutes.",
+  },
+  {
+    icon: <UserMinus className="h-10 w-10 text-primary" />,
+    title: "Absolutely No Brokers",
+    description: "Connect directly with owners. We've eliminated the middleman to save you time and money.",
+  },
+];
+
+const actionCards = [
+    {
+        icon: <Home className="h-8 w-8 text-primary" />,
+        title: "Rent a Property",
+        description: "Find your perfect home from our list of verified properties.",
+        href: "/",
+        cta: "Browse Listings"
+    },
+    {
+        icon: <PlusCircle className="h-8 w-8 text-primary" />,
+        title: "List Your Property",
+        description: "Reach thousands of potential tenants by listing your property with us.",
+        href: "/list-property",
+        cta: "List for Free"
+    },
+    {
+        icon: <ShieldCheck className="h-8 w-8 text-primary" />,
+        title: "Verified Rentals",
+        description: "Learn about our verification process that builds trust in our community.",
+        href: "/verify-kyc",
+        cta: "Learn More"
+    }
+]
 
 export default function Home() {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [sortOrder, setSortOrder] = useState("relevance");
-  const [selectedBeds, setSelectedBeds] = useState<number[]>([]);
-  const [selectedAmenities, setSelectedAmenities] = useState<string[]>([]);
-
-  const toggleBedSelection = (beds: number) => {
-    setSelectedBeds(prev =>
-      prev.includes(beds) ? prev.filter(b => b !== beds) : [...prev, beds]
-    );
-  };
-
-  const toggleAmenitySelection = (amenity: string) => {
-    setSelectedAmenities(prev =>
-      prev.includes(amenity) ? prev.filter(a => a !== amenity) : [...prev, amenity]
-    );
-  };
-  
-  const filteredListings = listings
-    .filter(listing => {
-      const searchTermLower = searchTerm.toLowerCase();
-      const matchesSearch =
-        listing.title.toLowerCase().includes(searchTermLower) ||
-        listing.location.address.toLowerCase().includes(searchTermLower) ||
-        listing.location.city.toLowerCase().includes(searchTermLower) ||
-        listing.description.toLowerCase().includes(searchTermLower);
-
-      const matchesBeds = selectedBeds.length === 0 || selectedBeds.includes(listing.beds);
-
-      const matchesAmenities = selectedAmenities.length === 0 || selectedAmenities.every(amenity => listing.amenities.includes(amenity));
-
-      return matchesSearch && matchesBeds && matchesAmenities;
-    })
-    .sort((a, b) => {
-      switch (sortOrder) {
-        case "price-asc":
-          return a.price - b.price;
-        case "price-desc":
-          return b.price - a.price;
-        case "newest":
-          // Assuming higher ID is newer, for mock data
-          return parseInt(b.id) - parseInt(a.id);
-        default:
-          return 0; // relevance
-      }
-    });
-
-  const clearFilters = () => {
-    setSelectedBeds([]);
-    setSelectedAmenities([]);
-  };
+  const latestVerifiedListings = listings.filter(l => l.verified).slice(0, 4);
 
   return (
     <div className="flex-1 w-full">
-      <div className=" bg-background p-4 sm:p-6 md:p-8">
-          <div className="mb-6">
-            <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-              Find Your Next Home
-            </h1>
-            <p className="mt-2 text-lg text-muted-foreground">
-              Browse our curated list of verified rental properties.
+      {/* Hero Section */}
+      <section className="relative bg-secondary/50">
+          <div className="container mx-auto px-4 py-20 text-center sm:py-24 lg:py-32">
+              <h1 className="text-4xl font-bold tracking-tight text-foreground sm:text-5xl md:text-6xl">
+                  Your Trusted Partner in Rentals
+              </h1>
+              <p className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground sm:text-xl">
+                  Discover verified properties and connect directly with owners. No brokers, no hassle.
+              </p>
+              <div className="mt-8 max-w-xl mx-auto">
+                  <div className="relative">
+                      <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                      <Input
+                          type="search"
+                          placeholder="Search by City, Area or Property Type"
+                          className="w-full h-14 pl-12 pr-32 rounded-full shadow-lg"
+                      />
+                      <Button size="lg" className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-full">
+                          Search
+                      </Button>
+                  </div>
+              </div>
+          </div>
+      </section>
+
+      {/* Action Cards Section */}
+      <section className="py-16 bg-background sm:py-20">
+        <div className="container mx-auto px-4">
+           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+             {actionCards.map((card) => (
+                <Card key={card.title} className="text-center p-6 flex flex-col items-center hover:shadow-xl transition-shadow">
+                    <div className="p-4 bg-primary/10 rounded-full mb-4">
+                        {card.icon}
+                    </div>
+                    <CardTitle className="text-xl mb-2">{card.title}</CardTitle>
+                    <p className="text-muted-foreground flex-grow mb-6">{card.description}</p>
+                    <Button asChild className="w-full">
+                        <Link href={card.href}>{card.cta}</Link>
+                    </Button>
+                </Card>
+             ))}
+           </div>
+        </div>
+      </section>
+
+      {/* Latest Verified Listings */}
+      <section className="py-16 bg-secondary/50 sm:py-20">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
+              Latest Verified Listings
+            </h2>
+            <p className="mt-3 max-w-2xl mx-auto text-lg text-muted-foreground">
+              Freshly listed and verified properties waiting for you.
             </p>
           </div>
-
-          <div className="flex flex-col sm:flex-row gap-4 mb-6">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-              <Input
-                type="search"
-                placeholder="Search by area, address, or keyword..."
-                className="pl-10 w-full"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="outline" className="w-full sm:w-auto">
-                  <SlidersHorizontal className="mr-2 h-4 w-4" />
-                  <span>Filters</span>
-                  {(selectedBeds.length > 0 || selectedAmenities.length > 0) && (
-                    <span className="ml-2 rounded-full bg-primary px-2 text-xs text-primary-foreground">
-                      {selectedBeds.length + selectedAmenities.length}
-                    </span>
-                  )}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-80" align="end">
-                <div className="space-y-4">
-                  <div>
-                    <h4 className="font-medium text-sm mb-2">Bedrooms</h4>
-                    <div className="flex gap-2">
-                      {[1, 2, 3, 4].map(beds => (
-                         <Button
-                          key={beds}
-                          variant={selectedBeds.includes(beds) ? 'default' : 'outline'}
-                          onClick={() => toggleBedSelection(beds)}
-                          className="flex-1"
-                        >
-                          <BedDouble className="mr-2 h-4 w-4" />
-                          {beds}
-                        </Button>
-                      ))}
-                    </div>
-                  </div>
-                  <div>
-                     <h4 className="font-medium text-sm mb-2">Amenities</h4>
-                     <div className="grid grid-cols-2 gap-2">
-                      {allAmenities.slice(0, 6).map(amenity => (
-                        <div key={amenity} className="flex items-center gap-2">
-                           <Checkbox 
-                              id={`amenity-${amenity}`} 
-                              checked={selectedAmenities.includes(amenity)}
-                              onCheckedChange={() => toggleAmenitySelection(amenity)}
-                            />
-                          <Label htmlFor={`amenity-${amenity}`} className="text-sm font-normal">{amenity}</Label>
-                        </div>
-                      ))}
-                     </div>
-                  </div>
-                  {(selectedBeds.length > 0 || selectedAmenities.length > 0) && (
-                    <Button variant="ghost" onClick={clearFilters} className="w-full">
-                      Clear Filters
-                    </Button>
-                  )}
-                </div>
-              </PopoverContent>
-            </Popover>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" className="w-full sm:w-auto">
-                  <ListFilter className="mr-2 h-4 w-4" />
-                  <span>Sort by</span>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-56">
-                <DropdownMenuRadioGroup value={sortOrder} onValueChange={setSortOrder}>
-                  <DropdownMenuRadioItem value="relevance">Relevance</DropdownMenuRadioItem>
-                  <DropdownMenuRadioItem value="price-asc">Price: Low to High</DropdownMenuRadioItem>
-                  <DropdownMenuRadioItem value="price-desc">Price: High to Low</DropdownMenuRadioItem>
-                  <DropdownMenuRadioItem value="newest">Newest</DropdownMenuRadioItem>
-                </DropdownMenuRadioGroup>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {filteredListings.length > 0 ? (
-              filteredListings.map((listing) => (
-                <ListingCard key={listing.id} listing={listing} />
-              ))
-            ) : (
-              <div className="md:col-span-2 xl:col-span-4 text-center py-16">
-                <h3 className="text-xl font-semibold">No listings found</h3>
-                <p className="text-muted-foreground mt-2">Try adjusting your search or filters.</p>
-              </div>
-            )}
+            {latestVerifiedListings.map((listing) => (
+              <ListingCard key={listing.id} listing={listing} />
+            ))}
+          </div>
+          <div className="mt-12 text-center">
+            <Button size="lg" variant="outline" asChild>
+                <Link href="/">View All Listings</Link>
+            </Button>
           </div>
         </div>
+      </section>
+
+      {/* Why GharBhada? Section */}
+      <section className="py-16 bg-background sm:py-20">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
+              Why Choose GharBhada.com?
+            </h2>
+            <p className="mt-3 max-w-2xl mx-auto text-lg text-muted-foreground">
+              We are committed to making your rental journey seamless and secure.
+            </p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-12 text-center">
+            {features.map((feature) => (
+              <div key={feature.title} className="flex flex-col items-center">
+                <div className="p-4 bg-primary/10 rounded-full mb-4">
+                  {feature.icon}
+                </div>
+                <h3 className="text-xl font-semibold mb-2">{feature.title}</h3>
+                <p className="text-muted-foreground">{feature.description}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
     </div>
   )
 }
