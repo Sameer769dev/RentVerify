@@ -12,9 +12,10 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from '@/components/ui/checkbox';
-import { Upload, Home, Loader2, FileImage } from "lucide-react";
+import { Upload, Home, Loader2, FileImage, Wand2 } from "lucide-react";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { toast } from '@/hooks/use-toast';
+import { generateListingDescription } from '@/ai/flows/generate-listing-description-flow';
 
 const amenitiesList = ["Wifi", "Kitchen", "Washer", "Dryer", "Air Conditioning", "Heating", "Parking", "Garden", "Pet Friendly", "Pool", "Gym", "Desk", "Elevator"];
 
@@ -30,12 +31,14 @@ const listingSchema = z.object({
   type: z.enum(['House', 'Flat', 'Room'], { required_error: "Please select a property type." }),
   amenities: z.array(z.string()).optional(),
   photo: z.custom<File>(val => val instanceof File, "Please upload a property photo."),
+  keywords: z.string().optional(),
 });
 
 type ListingFormData = z.infer<typeof listingSchema>;
 
 export default function ListPropertyPage() {
-  const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
   const [fileName, setFileName] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -48,15 +51,54 @@ export default function ListPropertyPage() {
       city: "",
       country: "USA",
       amenities: [],
+      keywords: "",
     },
   });
 
+  const handleGenerateDescription = async () => {
+    setIsGenerating(true);
+    const { keywords, type, beds, city } = form.getValues();
+
+    if (!type || !beds || !city) {
+        toast({
+            title: "Missing Information",
+            description: "Please fill in Property Type, Bedrooms, and City to generate a description.",
+            variant: "destructive",
+        });
+        setIsGenerating(false);
+        return;
+    }
+
+    try {
+      const result = await generateListingDescription({
+        propertyType: type,
+        beds,
+        city,
+        keywords: keywords || "beautiful, convenient, great value",
+      });
+      form.setValue('description', result.description, { shouldValidate: true });
+      toast({
+        title: "Description Generated!",
+        description: "The AI has crafted a description for you. Feel free to edit it further.",
+      });
+    } catch (error) {
+      console.error("Description generation failed:", error);
+      toast({
+        title: "An error occurred",
+        description: "Could not generate a description. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
   const onSubmit = async (data: ListingFormData) => {
-    setIsLoading(true);
+    setIsSubmitting(true);
     console.log("Listing data:", data);
     // Here you would typically handle the form submission, e.g., upload the image and save the data.
     await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate API call
-    setIsLoading(false);
+    setIsSubmitting(false);
     toast({
       title: "Property Listed!",
       description: "Your property has been successfully listed and is pending review.",
@@ -104,6 +146,27 @@ export default function ListPropertyPage() {
                   </FormItem>
                 )}
               />
+
+              <div className="space-y-2">
+                <FormField
+                  control={form.control}
+                  name="keywords"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Description Keywords</FormLabel>
+                      <FormControl>
+                        <Input placeholder="e.g., sunny balcony, quiet street, great for families" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                 <Button type="button" variant="outline" size="sm" onClick={handleGenerateDescription} disabled={isGenerating}>
+                      {isGenerating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Wand2 className="mr-2 h-4 w-4" />}
+                      Generate Description with AI
+                 </Button>
+              </div>
+
 
               <FormField
                 control={form.control}
@@ -300,8 +363,8 @@ export default function ListPropertyPage() {
                 )}
               />
 
-              <Button type="submit" className="w-full !mt-10" size="lg" disabled={isLoading}>
-                {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+              <Button type="submit" className="w-full !mt-10" size="lg" disabled={isSubmitting}>
+                {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                 List My Property
               </Button>
             </form>
@@ -311,4 +374,3 @@ export default function ListPropertyPage() {
     </div>
   );
 }
-
