@@ -7,6 +7,8 @@ export type Listing = {
     address: string;
     city: string;
     country: string;
+    lat: number;
+    lng: number;
   };
   images: string[];
   beds: number;

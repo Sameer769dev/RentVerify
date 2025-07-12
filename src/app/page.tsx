@@ -12,7 +12,7 @@ import { Label } from "@/components/ui/label"
 import { ListFilter, Search, SlidersHorizontal, BedDouble, ChevronDown } from "lucide-react"
 import { listings } from "@/lib/mock-data"
 import ListingCard from "@/components/listing-card"
-import MapPlaceholder from "@/components/map-placeholder"
+import Map from "@/components/map"
 import type { Listing } from "@/types";
 
 const allAmenities = Array.from(new Set(listings.flatMap(l => l.amenities)));
@@ -179,7 +179,7 @@ export default function Home() {
         </div>
 
         <div className="hidden lg:block lg:col-span-1 xl:col-span-1 relative">
-            <MapPlaceholder />
+            <Map listings={filteredListings} />
         </div>
       </div>
     </div>
