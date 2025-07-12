@@ -12,7 +12,6 @@ import { Label } from "@/components/ui/label"
 import { ListFilter, Search, SlidersHorizontal, BedDouble, ChevronDown } from "lucide-react"
 import { listings } from "@/lib/mock-data"
 import ListingCard from "@/components/listing-card"
-import Map from "@/components/map"
 import type { Listing } from "@/types";
 
 const allAmenities = Array.from(new Set(listings.flatMap(l => l.amenities)));
@@ -71,8 +70,7 @@ export default function Home() {
 
   return (
     <div className="flex-1 w-full">
-      <div className="grid grid-cols-1 lg:grid-cols-3 xl:grid-cols-4 min-h-[calc(100vh-4rem)]">
-        <div className="lg:col-span-2 xl:col-span-3 bg-background p-4 sm:p-6 md:p-8">
+      <div className=" bg-background p-4 sm:p-6 md:p-8">
           <div className="mb-6">
             <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
               Find Your Next Home
@@ -164,22 +162,18 @@ export default function Home() {
             </DropdownMenu>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {filteredListings.length > 0 ? (
               filteredListings.map((listing) => (
                 <ListingCard key={listing.id} listing={listing} />
               ))
             ) : (
-              <div className="md:col-span-2 xl:col-span-3 text-center py-16">
+              <div className="md:col-span-2 xl:col-span-4 text-center py-16">
                 <h3 className="text-xl font-semibold">No listings found</h3>
                 <p className="text-muted-foreground mt-2">Try adjusting your search or filters.</p>
               </div>
             )}
           </div>
-        </div>
-
-        <div className="hidden lg:block lg:col-span-1 xl:col-span-1 relative">
-            <Map listings={filteredListings} />
         </div>
       </div>
     </div>
