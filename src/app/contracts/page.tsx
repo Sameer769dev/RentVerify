@@ -52,14 +52,10 @@ export default function ContractsPage() {
             </CardHeader>
             <CardContent className="flex-grow"/>
             <CardFooter className="flex justify-end gap-2">
-              <Button variant="outline" size="sm">
-                <Download className="mr-2 h-4 w-4" />
-                Download
-              </Button>
               <Button asChild>
                 <Link href={`/contracts/${template.id}`}>
                   <Edit className="mr-2 h-4 w-4" />
-                  View & Sign
+                  Generate
                 </Link>
               </Button>
             </CardFooter>

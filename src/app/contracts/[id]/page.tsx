@@ -58,6 +58,7 @@ export default function GenerateContractPage({ params }: { params: { id: string 
         landlordName: '',
         tenantName: '',
         propertyAddress: '',
+        rentAmount: 1000,
         leaseStartDate: new Date().toISOString().split('T')[0],
         leaseEndDate: new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString().split('T')[0],
     },

@@ -235,7 +235,7 @@ export default function VerifyKycPage() {
                        </FormControl>
                        <div className="space-y-1 leading-none">
                          <FormLabel>
-                           I agree to the <Link href="/terms" className="text-primary hover:underline">digital contract terms</Link>.
+                           I agree to the <Link href="/contracts" className="text-primary hover:underline">digital contract terms</Link>.
                          </FormLabel>
                          <FormMessage />
                        </div>
@@ -260,6 +260,11 @@ export default function VerifyKycPage() {
                    {verificationResult.isVerified && (
                      <Button asChild className="mt-4 w-full">
                         <Link href="/list-property">Proceed to List a Property</Link>
+                     </Button>
+                   )}
+                   {!verificationResult.isVerified && (
+                     <Button onClick={() => setVerificationResult(null)} className="mt-4 w-full" variant="secondary">
+                        Try Again
                      </Button>
                    )}
                 </AlertDescription>
