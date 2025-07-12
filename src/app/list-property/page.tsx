@@ -17,6 +17,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { toast } from '@/hooks/use-toast';
 import { generateListingDescription } from '@/ai/flows/generate-listing-description-flow';
 import Image from 'next/image';
+import TextareaAutosize from 'react-textarea-autosize';
 
 const amenitiesList = ["Wifi", "Kitchen", "Washer", "Dryer", "Air Conditioning", "Heating", "Parking", "Garden", "Pet Friendly", "Pool", "Gym", "Desk", "Elevator"];
 
@@ -199,7 +200,12 @@ export default function ListPropertyPage() {
                   <FormItem>
                     <FormLabel>Description</FormLabel>
                     <FormControl>
-                      <Textarea placeholder="Describe your property in detail..." {...field} rows={5} />
+                      <TextareaAutosize
+                        placeholder="Describe your property in detail..."
+                        {...field}
+                        className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
+                        minRows={5}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -401,5 +407,3 @@ export default function ListPropertyPage() {
     </div>
   );
 }
-
-    
