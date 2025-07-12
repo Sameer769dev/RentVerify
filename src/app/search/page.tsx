@@ -7,16 +7,18 @@ import ListingCard from "@/components/listing-card";
 import { SearchFilters } from "./_components/search-filters";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { ChevronDown, List, LayoutGrid } from "lucide-react";
+import { ChevronDown, List, LayoutGrid, Map } from "lucide-react";
 import { Sidebar, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import type { Listing } from "@/types";
+import MapView from "./_components/map-view";
 
 type SortOption = "price_asc" | "price_desc" | "newest";
+type ViewMode = "grid" | "list" | "map";
 
 export default function SearchPage() {
-    const [layout, setLayout] = React.useState("grid");
+    const [viewMode, setViewMode] = React.useState<ViewMode>("grid");
     const [listings, setListings] = React.useState<Listing[]>(allListings);
     const [filteredListings, setFilteredListings] = React.useState<Listing[]>(allListings);
 
@@ -72,6 +74,26 @@ export default function SearchPage() {
         newest: "Newest"
     };
 
+    const renderContent = () => {
+        if (viewMode === 'map') {
+            return <MapView listings={filteredListings} />;
+        }
+        return (
+            <ScrollArea className="h-[calc(100vh-8rem)]">
+                <div className={cn(
+                    "p-4 sm:p-6",
+                    viewMode === 'grid' 
+                        ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6"
+                        : "flex flex-col gap-6"
+                )}>
+                    {filteredListings.map((listing) => (
+                        <ListingCard key={listing.id} listing={listing} layout={viewMode as "grid" | "list"}/>
+                    ))}
+                </div>
+            </ScrollArea>
+        );
+    };
+
     return (
         <>
             <Sidebar>
@@ -98,7 +120,7 @@ export default function SearchPage() {
                             <div className="flex items-center gap-2">
                                 <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
-                                        <Button variant="outline" size="sm">
+                                        <Button variant="outline" size="sm" className="hidden sm:flex">
                                             Sort by: {sortLabels[sortOption]}
                                             <ChevronDown className="ml-2 h-4 w-4" />
                                         </Button>
@@ -109,29 +131,21 @@ export default function SearchPage() {
                                         <DropdownMenuItem onClick={() => setSortOption('newest')}>Newest</DropdownMenuItem>
                                     </DropdownMenuContent>
                                 </DropdownMenu>
-                                <div className="hidden sm:flex">
-                                    <Button variant={layout === 'grid' ? 'secondary' : 'ghost'} size="icon" onClick={() => setLayout('grid')}>
+                                <div className="flex rounded-md border p-0.5">
+                                    <Button variant={viewMode === 'grid' ? 'secondary' : 'ghost'} size="icon" onClick={() => setViewMode('grid')} className="h-8 w-8">
                                         <LayoutGrid className="h-5 w-5"/>
                                     </Button>
-                                     <Button variant={layout === 'list' ? 'secondary' : 'ghost'} size="icon" onClick={() => setLayout('list')}>
+                                     <Button variant={viewMode === 'list' ? 'secondary' : 'ghost'} size="icon" onClick={() => setViewMode('list')} className="h-8 w-8">
                                         <List className="h-5 w-5"/>
+                                    </Button>
+                                    <Button variant={viewMode === 'map' ? 'secondary' : 'ghost'} size="icon" onClick={() => setViewMode('map')} className="h-8 w-8">
+                                        <Map className="h-5 w-5"/>
                                     </Button>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <ScrollArea className="h-[calc(100vh-8rem)]">
-                        <div className={cn(
-                            "p-4 sm:p-6",
-                            layout === 'grid' 
-                                ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6"
-                                : "flex flex-col gap-6"
-                        )}>
-                            {filteredListings.map((listing) => (
-                                <ListingCard key={listing.id} listing={listing} layout={layout as "grid" | "list"}/>
-                            ))}
-                        </div>
-                    </ScrollArea>
+                    {renderContent()}
                 </SidebarInset>
             </Sidebar>
         </>
