@@ -12,14 +12,12 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from '@/components/ui/checkbox';
-import { Upload, Home, Loader2, FileImage, Wand2, X, Camera, Video, CircleUserRound } from "lucide-react";
+import { Upload, Home, Loader2, FileImage, Wand2, X } from "lucide-react";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { toast } from '@/hooks/use-toast';
 import { generateListingDescription } from '@/ai/flows/generate-listing-description-flow';
-import { generateListingImage } from '@/ai/flows/generate-listing-image-flow';
 import Image from 'next/image';
 import TextareaAutosize from 'react-textarea-autosize';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 const amenitiesList = ["Wifi", "Kitchen", "Washer", "Dryer", "Air Conditioning", "Heating", "Parking", "Garden", "Pet Friendly", "Pool", "Gym", "Desk", "Elevator"];
 
@@ -34,7 +32,7 @@ const listingSchema = z.object({
   baths: z.coerce.number().min(1, "Number of baths is required."),
   type: z.enum(['House', 'Flat', 'Room'], { required_error: "Please select a property type." }),
   amenities: z.array(z.string()).optional(),
-  photos: z.array(z.custom<File | string>()).min(1, "Please upload at least one property photo."),
+  photos: z.array(z.custom<File>()).min(1, "Please upload at least one property photo."),
   keywords: z.string().optional(),
 });
 
@@ -43,75 +41,8 @@ type ListingFormData = z.infer<typeof listingSchema>;
 export default function ListPropertyPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isGeneratingDesc, setIsGeneratingDesc] = useState(false);
-  const [isGeneratingImage, setIsGeneratingImage] = useState(false);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const [showCamera, setShowCamera] = useState(false);
-  const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-
-  useEffect(() => {
-    const enableCamera = async () => {
-        if (!showCamera) {
-            if (videoRef.current?.srcObject) {
-                const stream = videoRef.current.srcObject as MediaStream;
-                stream.getTracks().forEach(track => track.stop());
-                videoRef.current.srcObject = null;
-            }
-            return;
-        }
-        
-        try {
-            const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-            setHasCameraPermission(true);
-            if (videoRef.current) {
-                videoRef.current.srcObject = stream;
-            }
-        } catch (error) {
-            console.error('Error accessing camera:', error);
-            setHasCameraPermission(false);
-            setShowCamera(false);
-            toast({
-                variant: 'destructive',
-                title: 'Camera Access Denied',
-                description: 'Please enable camera permissions in your browser settings.',
-            });
-        }
-    };
-    enableCamera();
-    
-    return () => {
-      if (videoRef.current?.srcObject) {
-        const stream = videoRef.current.srcObject as MediaStream;
-        stream.getTracks().forEach(track => track.stop());
-      }
-    };
-  }, [showCamera]);
-  
-  const handleCapture = () => {
-      if (!videoRef.current || !canvasRef.current) return;
-      const video = videoRef.current;
-      const canvas = canvasRef.current;
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      const context = canvas.getContext('2d');
-      context?.drawImage(video, 0, 0, video.videoWidth, video.videoHeight);
-      
-      canvas.toBlob((blob) => {
-          if (blob) {
-              const file = new File([blob], `capture-${Date.now()}.png`, { type: 'image/png' });
-              const currentFiles = form.getValues('photos') || [];
-              form.setValue('photos', [...currentFiles, file], { shouldValidate: true });
-
-              const previewUrl = URL.createObjectURL(file);
-              setImagePreviews(prev => [...prev, previewUrl]);
-          }
-      }, 'image/png');
-      setShowCamera(false);
-  };
-
 
   const form = useForm<ListingFormData>({
     resolver: zodResolver(listingSchema),
@@ -162,47 +93,6 @@ export default function ListPropertyPage() {
       });
     } finally {
       setIsGeneratingDesc(false);
-    }
-  };
-
-  const handleGenerateImage = async () => {
-    setIsGeneratingImage(true);
-    const description = form.getValues('description');
-    if (description.length < 20) {
-      toast({
-        title: "Description Too Short",
-        description: "Please write a more detailed description (at least 20 characters) to generate an image.",
-        variant: "destructive"
-      });
-      setIsGeneratingImage(false);
-      return;
-    }
-    
-    try {
-      const result = await generateListingImage({ description });
-      // Convert data URI to Blob/File to be compatible with form state
-      const response = await fetch(result.imageDataUri);
-      const blob = await response.blob();
-      const file = new File([blob], `ai-generated-${Date.now()}.png`, { type: blob.type });
-
-      // Add to form state and previews
-      const currentFiles = form.getValues('photos') || [];
-      form.setValue('photos', [...currentFiles, file], { shouldValidate: true });
-      setImagePreviews(prev => [...prev, result.imageDataUri]);
-
-      toast({
-        title: "Image Generated!",
-        description: "AI has created an image based on your description."
-      });
-    } catch (error) {
-      console.error("Image generation failed:", error);
-      toast({
-        title: "An error occurred",
-        description: "Could not generate an image. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsGeneratingImage(false);
     }
   };
   
@@ -459,47 +349,28 @@ export default function ListPropertyPage() {
 
               <FormItem>
                 <FormLabel>Property Photos</FormLabel>
-                <div className="space-y-4">
-                  {imagePreviews.length > 0 && (
-                    <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4">
-                      {imagePreviews.map((src, index) => (
-                        <div key={index} className="relative aspect-square">
-                          <Image src={src} alt={`Preview ${index}`} fill className="rounded-md object-cover" />
-                          <Button type="button" variant="destructive" size="icon" className="absolute top-1 right-1 h-6 w-6" onClick={() => handleRemoveImage(index)}>
-                            <X className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      ))}
+                <div className="flex items-center justify-center w-full">
+                  <label htmlFor="photoUpload" className="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed rounded-lg cursor-pointer bg-secondary/50 hover:bg-secondary/80">
+                    <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                      <Upload className="w-10 h-10 mb-3 text-muted-foreground" />
+                      <p className="mb-2 text-sm text-muted-foreground"><span className="font-semibold">Click to upload</span> or drag and drop</p>
+                      <p className="text-xs text-muted-foreground">PNG, JPG (MAX. 800x400px)</p>
                     </div>
-                  )}
-
-                  {showCamera && (
-                    <div className="space-y-2">
-                      <video ref={videoRef} className="w-full aspect-video rounded-md bg-secondary" autoPlay muted playsInline />
-                      <canvas ref={canvasRef} className="hidden" />
-                      <div className="flex gap-2">
-                        <Button type="button" className="w-full" onClick={handleCapture}>Capture Photo</Button>
-                        <Button type="button" variant="secondary" onClick={() => setShowCamera(false)}>Close Camera</Button>
-                      </div>
-                    </div>
-                  )}
-
-                  <div className="flex flex-col sm:flex-row gap-2">
-                    <Button type="button" variant="outline" className="w-full" onClick={() => fileInputRef.current?.click()}>
-                      <Upload className="mr-2 h-4 w-4" /> Upload from Device
-                    </Button>
                     <Input id="photoUpload" type="file" multiple className="hidden" ref={fileInputRef} accept="image/png, image/jpeg, image/jpg" onChange={handleFileChange} />
-                    
-                    <Button type="button" variant="outline" className="w-full" onClick={() => setShowCamera(true)}>
-                      <Video className="mr-2 h-4 w-4" /> Use Camera
-                    </Button>
-                  </div>
-                  
-                  <Button type="button" variant="outline" className="w-full" onClick={handleGenerateImage} disabled={isGeneratingImage}>
-                    {isGeneratingImage ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Wand2 className="mr-2 h-4 w-4" />}
-                    Generate Image with AI
-                  </Button>
+                  </label>
                 </div>
+                {imagePreviews.length > 0 && (
+                  <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4 mt-4">
+                    {imagePreviews.map((src, index) => (
+                      <div key={index} className="relative aspect-square">
+                        <Image src={src} alt={`Preview ${index}`} fill className="rounded-md object-cover" />
+                        <Button type="button" variant="destructive" size="icon" className="absolute top-1 right-1 h-6 w-6" onClick={() => handleRemoveImage(index)}>
+                            <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
                 <FormMessage>{form.formState.errors.photos?.message}</FormMessage>
               </FormItem>
 
