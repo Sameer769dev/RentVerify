@@ -40,7 +40,7 @@ export function SearchFilters({
                 </div>
             </SidebarHeader>
             <SidebarSeparator />
-            <SidebarContent asChild>
+            <SidebarContent>
                 <ScrollArea>
                     <div className="flex flex-col gap-4 p-4">
                         <SidebarGroup>
