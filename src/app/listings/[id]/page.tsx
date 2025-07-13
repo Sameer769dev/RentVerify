@@ -17,6 +17,15 @@ import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { getListing } from "@/lib/firestore";
 import type { Listing } from "@/types";
+import dynamic from "next/dynamic";
+import { Skeleton } from "@/components/ui/skeleton";
+import SimilarListings from "./components/similar-listings";
+
+const ListingMap = dynamic(() => import('./components/listing-map'), {
+    ssr: false,
+    loading: () => <Skeleton className="w-full h-[400px] rounded-lg" />,
+});
+
 
 const amenityIcons: { [key: string]: React.ElementType } = {
   Wifi,
@@ -97,16 +106,24 @@ export default function ListingPage({ params }: { params: { id: string } }) {
   return (
     <div className="container mx-auto px-4 py-8 sm:px-6 lg:px-8">
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2">
-           <div className="mb-4">
-              <Badge variant="secondary" className="mb-2">{listing.type}</Badge>
+        <div className="lg:col-span-2 space-y-8">
+           <div>
+              <div className="flex items-center justify-between mb-2">
+                <Badge variant="secondary">{listing.type}</Badge>
+                 {listing.verified && (
+                    <div className="inline-flex items-center gap-1.5 text-green-600">
+                        <ShieldCheck className="h-5 w-5" />
+                        <span className="font-semibold text-sm">Verified Listing</span>
+                    </div>
+                )}
+              </div>
               <h1 className="text-4xl font-bold tracking-tight text-foreground sm:text-5xl">{listing.title}</h1>
               <div className="flex items-center text-muted-foreground mt-2">
                 <MapPin className="h-5 w-5 mr-2" />
                 <span>{listing.location.address}, {listing.location.city}</span>
               </div>
            </div>
-          <Card className="overflow-hidden mb-8">
+          <Card className="overflow-hidden">
             <Carousel className="w-full">
               <CarouselContent>
                 {listing.images.map((src, index) => (
@@ -188,27 +205,31 @@ export default function ListingPage({ params }: { params: { id: string } }) {
               </div>
             </CardContent>
           </Card>
+          
+           <Card>
+             <CardContent className="p-6">
+                 <h2 className="text-2xl font-semibold mb-4">Location</h2>
+                 <div className="aspect-[16/9] w-full rounded-lg overflow-hidden">
+                    <ListingMap listing={listing}/>
+                 </div>
+             </CardContent>
+           </Card>
         </div>
 
-        <div className="lg:col-span-1 space-y-8 sticky top-24">
+        <div className="lg:col-span-1 space-y-8 sticky top-24 h-max">
            <Card>
                 <CardContent className="p-6">
                     <div className="flex justify-between items-center mb-4">
                          <h2 className="text-xl font-semibold">Interested?</h2>
-                         {listing.verified && (
-                            <div className="inline-flex items-center gap-1.5 text-green-600">
-                                <ShieldCheck className="h-5 w-5" />
-                                <span className="font-semibold text-sm">Verified</span>
-                            </div>
-                        )}
                     </div>
                     <BookingModal listing={listing} />
                     <Button asChild className="w-full mt-2" variant="outline">
-                        <Link href="/messages?to=owner123">Message Owner</Link>
+                        <Link href={`/messages?to=${listing.ownerId || 'owner123'}`}>Message Owner</Link>
                     </Button>
                 </CardContent>
             </Card>
             <SmartRecommendations currentListing={listing} />
+            <SimilarListings currentListing={listing} />
         </div>
       </div>
     </div>
