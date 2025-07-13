@@ -62,10 +62,10 @@ export default function LoginPage() {
         try {
             generateRecaptcha();
             const appVerifier = window.recaptchaVerifier;
-            const result = await signInWithPhoneNumber(auth, `+1${phoneNumber}`, appVerifier);
+            const result = await signInWithPhoneNumber(auth, `+977${phoneNumber}`, appVerifier);
             setConfirmationResult(result);
             setLoginStep('otp');
-            toast({ title: 'OTP Sent', description: `An OTP has been sent to +1${phoneNumber}.` });
+            toast({ title: 'OTP Sent', description: `An OTP has been sent to +977${phoneNumber}.` });
         } catch (error) {
             console.error("Error sending OTP:", error);
             toast({ title: 'Error', description: 'Failed to send OTP. Please check the phone number and try again.', variant: 'destructive' });
@@ -164,12 +164,12 @@ export default function LoginPage() {
                                     <form onSubmit={handlePhoneSubmit} className="space-y-4">
                                         <div className="relative">
                                             <div className="absolute inset-y-0 left-0 flex items-center pl-3">
-                                                <span className="text-muted-foreground sm:text-sm">+1</span>
+                                                <span className="text-muted-foreground sm:text-sm">+977</span>
                                             </div>
                                             <Input 
                                                 type="tel" 
                                                 placeholder="Enter your phone number" 
-                                                className="pl-10" 
+                                                className="pl-12" 
                                                 value={phoneNumber}
                                                 onChange={(e) => setPhoneNumber(e.target.value)}
                                                 required
@@ -190,7 +190,7 @@ export default function LoginPage() {
                             <CardHeader className="p-0 mb-6">
                                 <CardTitle className="text-2xl">Enter OTP</CardTitle>
                                 <CardDescription>
-                                    We've sent a one-time password to <span className="font-semibold text-foreground">+1{phoneNumber}</span>. 
+                                    We've sent a one-time password to <span className="font-semibold text-foreground">+977{phoneNumber}</span>. 
                                     <Button variant="link" className="p-1 h-auto" onClick={() => setLoginStep('options')}>Change number</Button>
                                 </CardDescription>
                             </CardHeader>
