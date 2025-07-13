@@ -1,10 +1,1 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100">
-  <defs>
-    <pattern id="mandala" patternUnits="userSpaceOnUse" width="50" height="50">
-      <path d="M25,0 C38.8071187,0 50,11.1928813 50,25 C50,38.8071187 38.8071187,50 25,50 C11.1928813,50 0,38.8071187 0,25 C0,11.1928813 11.1928813,0 25,0 Z M25,5 C13.954305,5 5,13.954305 5,25 C5,36.045695 13.954305,45 25,45 C36.045695,45 45,36.045695 45,25 C45,13.954305 36.045695,5 25,5 Z" fill-rule="nonzero" fill="#000000" opacity="0.1"></path>
-      <circle cx="25" cy="25" r="12.5" stroke="#000000" stroke-width="1" fill="none" opacity="0.1"></circle>
-      <circle cx="25" cy="25" r="2.5" fill="#000000" opacity="0.1"></circle>
-    </pattern>
-  </defs>
-  <rect width="100" height="100" fill="url(#mandala)" />
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><defs><pattern id="p" width="100" height="100" patternUnits="userSpaceOnUse"><g fill="#8E44AD" fill-opacity="0.1"><path d="M50 0 l-15 15 a20 20 0 0 0 0 70 l15 15 l15 -15 a20 20 0 0 0 0 -70 z" transform="rotate(45 50 50)"/><path d="M50 0 l-15 15 a20 20 0 0 0 0 70 l15 15 l15 -15 a20 20 0 0 0 0 -70 z" transform="rotate(-45 50 50)"/><circle cx="50" cy="50" r="10"/></g></pattern></defs><rect width="100" height="100" fill="url(#p)"/></svg>
