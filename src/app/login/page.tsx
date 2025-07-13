@@ -25,7 +25,7 @@ const GoogleIcon = () => (
 export default function LoginPage() {
     const [role, setRole] = useState('tenant');
     const [loginStep, setLoginStep] = useState('options'); // 'options' or 'otp'
-    const [phoneNumber, setPhoneNumber] = useState('');
+    const [phoneNumber, setPhoneNumber] = useState(process.env.NODE_ENV === 'development' ? '9800000000' : ''); // Pre-fill for dev
     const [otp, setOtp] = useState('');
     const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null);
     const [isLoading, setIsLoading] = useState(false);
@@ -65,10 +65,20 @@ export default function LoginPage() {
             const result = await signInWithPhoneNumber(auth, `+977${phoneNumber}`, appVerifier);
             setConfirmationResult(result);
             setLoginStep('otp');
-            toast({ title: 'OTP Sent', description: `An OTP has been sent to +977${phoneNumber}.` });
+            toast({ title: 'OTP Sent', description: `An OTP has been sent to +977${phoneNumber}. (Use test code if applicable)` });
         } catch (error) {
             console.error("Error sending OTP:", error);
-            toast({ title: 'Error', description: 'Failed to send OTP. Please check the phone number and try again.', variant: 'destructive' });
+            const firebaseError = error as any;
+            if (firebaseError.code === 'auth/billing-not-enabled') {
+                 toast({ 
+                    title: 'Billing Not Enabled', 
+                    description: "This project can only use test phone numbers. Please see the Firebase console.",
+                    variant: 'destructive',
+                    duration: 10000
+                });
+            } else {
+                toast({ title: 'Error', description: 'Failed to send OTP. Please check the phone number and try again.', variant: 'destructive' });
+            }
         } finally {
             setIsLoading(false);
         }
