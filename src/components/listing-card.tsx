@@ -17,13 +17,13 @@ export default function ListingCard({ listing, layout = 'grid' }: ListingCardPro
   if (layout === 'list') {
     return (
         <Card className="group flex flex-col md:flex-row overflow-hidden transition-all duration-300 hover:shadow-xl w-full">
-            <div className="md:w-1/3 relative">
+            <div className="md:w-1/3 relative flex-shrink-0">
                  <Image
                     src={listing.images[0]}
                     alt={listing.title}
                     width={400}
                     height={400}
-                    className="aspect-video md:aspect-square w-full h-full object-cover"
+                    className="aspect-[4/3] w-full h-full object-cover"
                     data-ai-hint="apartment interior"
                 />
                  {listing.verified && (
@@ -55,11 +55,11 @@ export default function ListingCard({ listing, layout = 'grid' }: ListingCardPro
                     </div>
                 </CardContent>
                 <CardFooter className="p-4 bg-secondary/30 flex justify-between items-center">
-                     <div className="text-lg font-bold text-primary">
+                     <div className="text-xl font-bold text-primary">
                         ${listing.price.toLocaleString()}
                         <span className="text-sm font-normal text-muted-foreground">/month</span>
                     </div>
-                    <Button asChild>
+                    <Button asChild size="lg">
                         <Link href={`/listings/${listing.id}`}>View Details</Link>
                     </Button>
                 </CardFooter>
@@ -77,7 +77,7 @@ export default function ListingCard({ listing, layout = 'grid' }: ListingCardPro
             alt={listing.title}
             width={600}
             height={400}
-            className="aspect-[3/2] w-full object-cover"
+            className="aspect-[16/10] w-full object-cover"
             data-ai-hint="apartment interior"
           />
           {listing.verified && (

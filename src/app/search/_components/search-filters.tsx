@@ -8,6 +8,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarHeader, SidebarSeparator } from "@/components/ui/sidebar";
 import { Slider } from "@/components/ui/slider";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Filter } from "lucide-react";
 
 const amenitiesList = ["Wifi", "Kitchen", "Washer", "Dryer", "Air Conditioning", "Heating", "Parking", "Garden", "Pet Friendly", "Pool", "Gym", "Desk", "Elevator"];
 
@@ -33,14 +34,17 @@ export function SearchFilters({
     return (
         <>
             <SidebarHeader>
-                <h2 className="text-xl font-bold">Filters</h2>
+                <div className="flex items-center gap-2">
+                    <Filter className="h-5 w-5 text-primary" />
+                    <h2 className="text-xl font-bold">Filters</h2>
+                </div>
             </SidebarHeader>
             <SidebarSeparator />
             <SidebarContent asChild>
                 <ScrollArea>
                     <div className="flex flex-col gap-4 p-4">
                         <SidebarGroup>
-                            <SidebarGroupLabel>Price Range (Max)</SidebarGroupLabel>
+                            <SidebarGroupLabel className="text-base text-primary font-semibold">Price Range (Max)</SidebarGroupLabel>
                             <SidebarGroupContent>
                                 <Slider 
                                     value={[priceRange]} 
@@ -50,52 +54,52 @@ export function SearchFilters({
                                 />
                                 <div className="flex justify-between text-sm text-muted-foreground mt-2">
                                     <span>$0</span>
-                                    <span>${priceRange.toLocaleString()}</span>
+                                    <span className="font-medium text-foreground">${priceRange.toLocaleString()}</span>
                                 </div>
                             </SidebarGroupContent>
                         </SidebarGroup>
 
                         <SidebarGroup>
-                            <SidebarGroupLabel>Property Type</SidebarGroupLabel>
+                            <SidebarGroupLabel className="text-base text-primary font-semibold">Property Type</SidebarGroupLabel>
                             <SidebarGroupContent>
-                                <RadioGroup value={propertyType} onValueChange={onPropertyTypeChange}>
+                                <RadioGroup value={propertyType} onValueChange={onPropertyTypeChange} className="space-y-3">
                                     <div className="flex items-center space-x-2">
                                         <RadioGroupItem value="all" id="t-all" />
-                                        <Label htmlFor="t-all">All</Label>
+                                        <Label htmlFor="t-all" className="font-normal text-base">All</Label>
                                     </div>
                                     <div className="flex items-center space-x-2">
                                         <RadioGroupItem value="Room" id="t-room" />
-                                        <Label htmlFor="t-room">Room</Label>
+                                        <Label htmlFor="t-room" className="font-normal text-base">Room</Label>
                                     </div>
                                     <div className="flex items-center space-x-2">
                                         <RadioGroupItem value="Flat" id="t-flat" />
-                                        <Label htmlFor="t-flat">Flat / Apartment</Label>
+                                        <Label htmlFor="t-flat" className="font-normal text-base">Flat / Apartment</Label>
                                     </div>
                                     <div className="flex items-center space-x-2">
                                         <RadioGroupItem value="House" id="t-house" />
-                                        <Label htmlFor="t-house">House</Label>
+                                        <Label htmlFor="t-house" className="font-normal text-base">House</Label>
                                     </div>
                                 </RadioGroup>
                             </SidebarGroupContent>
                         </SidebarGroup>
 
                         <SidebarGroup>
-                            <SidebarGroupLabel>Amenities</SidebarGroupLabel>
-                            <SidebarGroupContent className="space-y-2">
-                                {amenitiesList.slice(0, 5).map(amenity => ( // Show a subset for brevity
+                            <SidebarGroupLabel className="text-base text-primary font-semibold">Amenities</SidebarGroupLabel>
+                            <SidebarGroupContent className="grid grid-cols-2 gap-x-4 gap-y-3">
+                                {amenitiesList.map(amenity => (
                                     <div key={amenity} className="flex items-center space-x-2">
                                         <Checkbox 
                                             id={amenity.toLowerCase().replace(/\s/g, '-')}
                                             checked={selectedAmenities.includes(amenity)}
                                             onCheckedChange={(checked) => onAmenityChange(amenity, !!checked)}
                                         />
-                                        <Label htmlFor={amenity.toLowerCase().replace(/\s/g, '-')} className="font-normal">{amenity}</Label>
+                                        <Label htmlFor={amenity.toLowerCase().replace(/\s/g, '-')} className="font-normal text-base">{amenity}</Label>
                                     </div>
                                 ))}
                             </SidebarGroupContent>
                         </SidebarGroup>
 
-                        <Button onClick={onApplyFilters} className="w-full mt-4">Apply Filters</Button>
+                        <Button onClick={onApplyFilters} className="w-full mt-4" size="lg">Apply Filters</Button>
                     </div>
                 </ScrollArea>
             </SidebarContent>

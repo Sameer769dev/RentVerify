@@ -43,7 +43,9 @@ export default function SearchPage() {
             try {
                 const listingsData = await getListings();
                 setAllListings(listingsData);
-                setFilteredListings(listingsData);
+                // Initially sort before setting
+                const sorted = [...listingsData].sort((a, b) => a.price - b.price);
+                setFilteredListings(sorted);
             } catch (error) {
                 console.error("Failed to fetch listings:", error);
             } finally {
@@ -89,7 +91,7 @@ export default function SearchPage() {
 
     React.useEffect(() => {
         handleApplyFilters();
-    }, [allListings, sortOption, handleApplyFilters]);
+    }, [sortOption, handleApplyFilters]);
 
     const sortLabels: Record<SortOption, string> = {
         price_asc: "Price (Low to High)",
@@ -101,7 +103,7 @@ export default function SearchPage() {
         if (isLoading) {
              return (
                 <div className="flex justify-center items-center h-[calc(100vh-8rem)]">
-                    <Loader2 className="h-8 w-8 animate-spin" />
+                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
                 </div>
             )
         }
@@ -114,7 +116,7 @@ export default function SearchPage() {
                 <div className={cn(
                     "p-4 sm:p-6",
                     viewMode === 'grid' 
-                        ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6"
+                        ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
                         : "flex flex-col gap-6"
                 )}>
                     {filteredListings.length > 0 ? (
@@ -122,7 +124,10 @@ export default function SearchPage() {
                             <ListingCard key={listing.id} listing={listing} layout={viewMode as "grid" | "list"}/>
                         ))
                     ) : (
-                        <p className="text-muted-foreground col-span-full text-center">No listings found that match your criteria.</p>
+                        <div className="col-span-full flex flex-col items-center justify-center h-96">
+                            <h3 className="text-xl font-semibold">No Listings Found</h3>
+                            <p className="text-muted-foreground mt-2">Try adjusting your filters to find more properties.</p>
+                        </div>
                     )}
                 </div>
             </ScrollArea>
@@ -142,38 +147,38 @@ export default function SearchPage() {
                     onApplyFilters={handleApplyFilters}
                 />
                 <SidebarInset>
-                    <div className="p-4 sm:p-6 border-b bg-background sticky top-0 z-10">
+                    <div className="p-4 border-b bg-background sticky top-0 z-10">
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
                                 <SidebarTrigger className="md:hidden"/>
                                 <div>
-                                    <h1 className="text-xl font-bold">Search Results</h1>
-                                    <p className="text-sm text-muted-foreground">{filteredListings.length} properties found</p>
+                                    <h1 className="text-2xl font-bold">Search Results</h1>
+                                    <p className="text-sm font-semibold text-primary">{filteredListings.length} properties found</p>
                                 </div>
                             </div>
 
                             <div className="flex items-center gap-2">
                                 <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
-                                        <Button variant="outline" size="sm" className="hidden sm:flex">
-                                            Sort by: {sortLabels[sortOption]}
+                                        <Button variant="outline" size="sm" className="hidden sm:flex min-w-[180px] justify-between">
+                                            <span>{sortLabels[sortOption]}</span>
                                             <ChevronDown className="ml-2 h-4 w-4" />
                                         </Button>
                                     </DropdownMenuTrigger>
-                                    <DropdownMenuContent>
+                                    <DropdownMenuContent align="end">
                                         <DropdownMenuItem onClick={() => setSortOption('price_asc')}>Price (Low to High)</DropdownMenuItem>
                                         <DropdownMenuItem onClick={() => setSortOption('price_desc')}>Price (High to Low)</DropdownMenuItem>
                                         <DropdownMenuItem onClick={() => setSortOption('newest')}>Newest</DropdownMenuItem>
                                     </DropdownMenuContent>
                                 </DropdownMenu>
-                                <div className="flex rounded-md border p-0.5">
-                                    <Button variant={viewMode === 'grid' ? 'secondary' : 'ghost'} size="icon" onClick={() => setViewMode('grid')} className="h-8 w-8">
+                                <div className="flex rounded-md border p-0.5 bg-muted">
+                                    <Button variant={viewMode === 'grid' ? 'secondary' : 'ghost'} size="icon" onClick={() => setViewMode('grid')} className="h-9 w-9">
                                         <LayoutGrid className="h-5 w-5"/>
                                     </Button>
-                                     <Button variant={viewMode === 'list' ? 'secondary' : 'ghost'} size="icon" onClick={() => setViewMode('list')} className="h-8 w-8">
+                                     <Button variant={viewMode === 'list' ? 'secondary' : 'ghost'} size="icon" onClick={() => setViewMode('list')} className="h-9 w-9">
                                         <List className="h-5 w-5"/>
                                     </Button>
-                                    <Button variant={viewMode === 'map' ? 'secondary' : 'ghost'} size="icon" onClick={() => setViewMode('map')} className="h-8 w-8">
+                                    <Button variant={viewMode === 'map' ? 'secondary' : 'ghost'} size="icon" onClick={() => setViewMode('map')} className="h-9 w-9">
                                         <Map className="h-5 w-5"/>
                                     </Button>
                                 </div>
