@@ -149,7 +149,7 @@ export default function MessagesPage() {
                      )}
                     <form onSubmit={handleSendMessage} className="flex items-center gap-2">
                         <Button type="button" variant="ghost" size="icon" onClick={handleGetSuggestions} disabled={isSuggesting}>
-                            <Sparkles className="h-5 w-5" />
+                            <Sparkles className="h-5 w-5 text-accent" />
                              <span className="sr-only">Suggest Replies</span>
                         </Button>
                         <Input 

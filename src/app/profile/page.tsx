@@ -117,7 +117,7 @@ export default function ProfilePage() {
           <Card>
             <CardHeader>
               <CardTitle>My Listings</CardTitle>
-              <CardDescription>An overview of the properties you have listed on RentVerify.</CardDescription>
+              <CardDescription>An overview of the properties you have listed on GharBhada.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
                {isLoadingListings ? (

@@ -36,6 +36,7 @@ import {
 import { useRouter } from "next/navigation"
 import { useAuth } from "./auth-provider"
 import { auth } from "@/lib/firebase"
+import GharBhadaIcon from "./gharbhada-icon"
 
 const navLinks = [
   { href: "/search", label: "Listings", icon: Search },
@@ -56,12 +57,12 @@ export default function Header() {
   return (
     <header className="sticky top-0 z-50 flex h-16 items-center gap-4 border-b bg-background/80 backdrop-blur-sm px-4 md:px-6">
       <div className="flex items-center gap-2">
-        <Building className="h-6 w-6 text-primary" />
+        <GharBhadaIcon className="h-7 w-7 text-primary" />
         <Link
           href="/"
           className="text-lg font-bold text-foreground transition-colors hover:text-primary"
         >
-          RentVerify
+          GharBhada
         </Link>
       </div>
 
@@ -145,8 +146,8 @@ export default function Header() {
           <SheetContent side="right">
             <nav className="grid gap-6 text-lg font-medium">
               <div className="flex items-center gap-2 text-lg font-semibold">
-                <Building className="h-6 w-6 text-primary" />
-                <span className="sr-only">RentVerify</span>
+                <GharBhadaIcon className="h-6 w-6 text-primary" />
+                <span className="sr-only">GharBhada</span>
               </div>
               {user && (
                 <SheetClose asChild>

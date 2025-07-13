@@ -86,7 +86,7 @@ export default function HomePage() {
       <section className="relative bg-secondary/50">
           <div className="container mx-auto px-4 py-20 text-center sm:py-24 lg:py-32">
               <h1 className="text-4xl font-bold tracking-tight text-foreground sm:text-5xl md:text-6xl">
-                  Your Trusted Partner in Rentals
+                  Find Your Next Home in Nepal
               </h1>
               <p className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground sm:text-xl">
                   Discover verified properties and connect directly with owners. No brokers, no hassle.
@@ -157,12 +157,12 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Why RentVerify? Section */}
+      {/* Why GharBhada? Section */}
       <section className="py-16 bg-background sm:py-20">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-              Why Choose RentVerify?
+              Why Choose GharBhada?
             </h2>
             <p className="mt-3 max-w-2xl mx-auto text-lg text-muted-foreground">
               We are committed to making your rental journey seamless and secure.

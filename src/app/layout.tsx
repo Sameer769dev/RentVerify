@@ -11,8 +11,8 @@ import "leaflet/dist/leaflet.css";
 const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
 
 export const metadata: Metadata = {
-  title: 'RentVerify',
-  description: 'RentVerify – Verified Rental Listing',
+  title: 'GharBhada',
+  description: 'GharBhada – Your Trusted Rental Partner in Nepal',
   icons: {
     icon: '/favicon.ico',
   },

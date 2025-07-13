@@ -29,7 +29,7 @@ const prompt = ai.definePrompt({
   name: 'generateReplySuggestionsPrompt',
   input: {schema: GenerateReplySuggestionsInputSchema},
   output: {schema: GenerateReplySuggestionsOutputSchema},
-  prompt: `You are a helpful assistant for a rental marketplace called RentVerify. Your task is to generate three brief, helpful, and contextually appropriate reply suggestions for a user in a chat conversation.
+  prompt: `You are a helpful assistant for a rental marketplace called GharBhada. Your task is to generate three brief, helpful, and contextually appropriate reply suggestions for a user in a chat conversation.
 
 The user is a {{userRole}}.
 

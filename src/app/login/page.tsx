@@ -8,12 +8,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Separator } from '@/components/ui/separator';
-import { Phone, KeyRound, Handshake, Building, Loader2 } from "lucide-react";
+import { Phone, KeyRound, Handshake, Loader2 } from "lucide-react";
 import { useRouter, useSearchParams } from 'next/navigation';
 import { auth } from '@/lib/firebase';
 import { RecaptchaVerifier, signInWithPhoneNumber, type ConfirmationResult, GoogleAuthProvider, signInWithPopup, type UserCredential } from 'firebase/auth';
 import { useToast } from '@/hooks/use-toast';
 import { createUserProfile } from '@/lib/firestore';
+import GharBhadaIcon from '@/components/gharbhada-icon';
 
 const GoogleIcon = () => (
     <svg className="mr-2 h-4 w-4" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="google" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512">
@@ -119,10 +120,10 @@ export default function LoginPage() {
             <div className="grid grid-cols-1 md:grid-cols-2">
                 <div className="bg-primary p-10 text-primary-foreground flex flex-col justify-center">
                     <div className="flex items-center gap-3 mb-4">
-                        <Building className="h-10 w-10"/>
-                        <h1 className="text-3xl font-bold">RentVerify</h1>
+                        <GharBhadaIcon className="h-10 w-10"/>
+                        <h1 className="text-3xl font-bold">GharBhada</h1>
                     </div>
-                    <p className="text-lg mb-2">Find Your Perfect Rental.</p>
+                    <p className="text-lg mb-2">Find Your Perfect Rental in Nepal.</p>
                     <p className="text-primary-foreground/80">
                         Join a community built on trust and transparency. Whether you're looking for a home or listing a property, we've got you covered.
                     </p>
