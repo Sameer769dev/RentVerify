@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from 'react';
@@ -39,50 +40,78 @@ const MapUpdater: React.FC<{ listings: Listing[] }> = ({ listings }) => {
 }
 
 const MapView: React.FC<MapViewProps> = ({ listings }) => {
+  const mapRef = React.useRef<L.Map | null>(null);
+  const mapContainerRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    if (mapContainerRef.current && !mapRef.current) {
+        // Initialize map only once
+        const map = L.map(mapContainerRef.current, {
+            center: [27.7172, 85.3240], // Kathmandu
+            zoom: 12,
+            scrollWheelZoom: true,
+        });
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        mapRef.current = map;
+    }
+  }, []);
+
+  React.useEffect(() => {
+    const map = mapRef.current;
+    if (map) {
+        // Clear existing markers
+        map.eachLayer(layer => {
+            if (layer instanceof L.Marker) {
+                map.removeLayer(layer);
+            }
+        });
+        
+        // Add new markers
+        listings.forEach(listing => {
+            const marker = L.marker([listing.location.lat, listing.location.lng], { icon: defaultIcon }).addTo(map);
+            
+            const popupContent = `
+                <div class="w-[250px] font-sans">
+                    <div class="relative aspect-video w-full rounded-t-md overflow-hidden">
+                        <img src="${listing.images[0]}" alt="${listing.title}" class="object-cover w-full h-full" />
+                        <div class="absolute top-0 left-0 right-0 h-10 bg-gradient-to-b from-black/60 to-transparent"></div>
+                        <h3 class="absolute top-2 left-3 text-sm font-bold text-white">${listing.title}</h3>
+                    </div>
+                    <div class="p-2">
+                         <p class="text-xs text-slate-500 flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-1"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+                            ${listing.location.city}
+                        </p>
+                        <p class="text-lg font-bold text-purple-600 mt-1">$${listing.price.toLocaleString()}/month</p>
+                    </div>
+                    <div class="p-2 pt-0">
+                       <a href="/listings/${listing.id}" class="block w-full text-center bg-purple-600 text-white hover:bg-purple-700 text-sm py-2 px-4 rounded-md">View Details</a>
+                    </div>
+                </div>
+            `;
+            marker.bindPopup(popupContent);
+        });
+
+        if (listings.length > 0) {
+            const bounds = new L.LatLngBounds(listings.map(l => [l.location.lat, l.location.lng]));
+            if (bounds.isValid()) {
+                map.fitBounds(bounds, { padding: [50, 50] });
+            }
+        }
+    }
+  }, [listings]);
+
+
   if (typeof window === 'undefined') {
     return null; // Don't render on the server
   }
-
-  // Set default center to Kathmandu, Nepal
-  const center: [number, number] = [27.7172, 85.3240]; 
-
-  return (
-    <MapContainer center={center} zoom={12} scrollWheelZoom={true} className="h-full w-full">
-      <TileLayer
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-      />
-      
-      {listings.map(listing => (
-        <Marker key={listing.id} position={[listing.location.lat, listing.location.lng]} icon={defaultIcon}>
-          <Popup>
-             <Card className="border-0 shadow-none w-[250px]">
-                <CardHeader className="p-0 relative">
-                    <div className="relative aspect-video w-full">
-                        <Image src={listing.images[0]} alt={listing.title} fill className="rounded-t-md object-cover" data-ai-hint="apartment interior" />
-                    </div>
-                     <div className="absolute top-0 left-0 right-0 h-10 bg-gradient-to-b from-black/60 to-transparent rounded-t-md" />
-                     <CardTitle className="absolute top-2 left-3 text-sm font-bold text-white line-clamp-1">{listing.title}</CardTitle>
-                </CardHeader>
-                <CardContent className="p-2">
-                    <p className="text-xs text-muted-foreground flex items-center">
-                        <MapPin className="h-3 w-3 mr-1"/> {listing.location.city}
-                    </p>
-                    <p className="text-lg font-bold text-primary mt-1">${listing.price.toLocaleString()}/month</p>
-                </CardContent>
-                <CardFooter className="p-2 pt-0">
-                    <Button asChild className="w-full" size="sm">
-                        <Link href={`/listings/${listing.id}`}>View Details</Link>
-                    </Button>
-                </CardFooter>
-              </Card>
-          </Popup>
-        </Marker>
-      ))}
-
-      <MapUpdater listings={listings} />
-    </MapContainer>
-  );
+  
+  return <div ref={mapContainerRef} className="h-full w-full" />;
 };
 
 export default MapView;
+
