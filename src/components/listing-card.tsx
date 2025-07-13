@@ -27,7 +27,7 @@ export default function ListingCard({ listing, layout = 'grid' }: ListingCardPro
                     data-ai-hint="apartment interior"
                 />
                  {listing.verified && (
-                    <Badge className="absolute top-3 right-3 bg-primary text-primary-foreground gap-1.5 pl-2 pr-2.5">
+                    <Badge className="absolute top-3 right-3 bg-accent text-accent-foreground gap-1.5 pl-2 pr-2.5">
                     <ShieldCheck className="h-4 w-4"/>
                     Verified
                     </Badge>
@@ -55,11 +55,11 @@ export default function ListingCard({ listing, layout = 'grid' }: ListingCardPro
                     </div>
                 </CardContent>
                 <CardFooter className="p-4 bg-secondary/30 flex justify-between items-center">
-                     <div className="text-xl font-bold text-primary">
+                     <div className="text-xl font-bold text-accent">
                         ${listing.price.toLocaleString()}
                         <span className="text-sm font-normal text-muted-foreground">/month</span>
                     </div>
-                    <Button asChild size="lg">
+                    <Button asChild size="lg" className="bg-primary hover:bg-accent hover:text-accent-foreground">
                         <Link href={`/listings/${listing.id}`}>View Details</Link>
                     </Button>
                 </CardFooter>
@@ -81,7 +81,7 @@ export default function ListingCard({ listing, layout = 'grid' }: ListingCardPro
             data-ai-hint="apartment interior"
           />
           {listing.verified && (
-            <Badge className="absolute top-3 right-3 bg-primary text-primary-foreground gap-1.5 pl-2 pr-2.5">
+            <Badge className="absolute top-3 right-3 bg-accent text-accent-foreground gap-1.5 pl-2 pr-2.5">
               <ShieldCheck className="h-4 w-4"/>
               Verified
             </Badge>
@@ -107,7 +107,7 @@ export default function ListingCard({ listing, layout = 'grid' }: ListingCardPro
                     <span>{listing.baths}</span>
                 </div>
             </div>
-            <div className="text-lg font-bold text-primary">
+            <div className="text-lg font-bold text-accent">
                 ${listing.price.toLocaleString()}
                 <span className="text-sm font-normal text-muted-foreground">/month</span>
             </div>
