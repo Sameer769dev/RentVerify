@@ -1,12 +1,11 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
-import Header from '@/components/header';
-import Footer from '@/components/footer';
 import { Inter } from 'next/font/google';
 import { cn } from '@/lib/utils';
 import { AuthProvider } from '@/components/auth-provider';
 import "leaflet/dist/leaflet.css";
+import PageShell from '@/components/page-shell';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
 
@@ -32,10 +31,9 @@ export default function RootLayout({
         )}
       >
         <AuthProvider>
-          <div id="recaptcha-container"></div>
-          <Header />
-          <main className="flex-grow">{children}</main>
-          <Footer />
+          <PageShell>
+            {children}
+          </PageShell>
           <Toaster />
         </AuthProvider>
       </body>
