@@ -15,7 +15,6 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Upload, Home, Loader2, FileImage, Wand2, X } from "lucide-react";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { toast } from '@/hooks/use-toast';
-import { generateListingDescription } from '@/ai/flows/generate-listing-description-flow';
 import Image from 'next/image';
 import TextareaAutosize from 'react-textarea-autosize';
 import { addListing, uploadImage } from '@/lib/firestore';
@@ -32,18 +31,16 @@ const listingSchema = z.object({
   city: z.string().min(2, "City is required."),
   country: z.string().min(2, "Country is required."),
   beds: z.coerce.number().int().min(1, "Number of beds is required."),
-  baths: z.coerce.number().min(1, "Number of baths is required."),
+  baths: z.coerce.number().int().min(1, "Number of baths is required."),
   type: z.enum(['House', 'Flat', 'Room'], { required_error: "Please select a property type." }),
   amenities: z.array(z.string()).optional(),
   photos: z.array(z.custom<File>()).min(1, "Please upload at least one property photo."),
-  keywords: z.string().optional(),
 });
 
 type ListingFormData = z.infer<typeof listingSchema>;
 
 export default function ListPropertyPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isGeneratingDesc, setIsGeneratingDesc] = useState(false);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { user } = useAuth();
@@ -58,7 +55,6 @@ export default function ListPropertyPage() {
       city: "",
       country: "USA",
       amenities: [],
-      keywords: "",
       photos: [],
     },
   });
@@ -67,44 +63,6 @@ export default function ListPropertyPage() {
     router.push('/login?redirect=/list-property');
     return null;
   }
-
-  const handleGenerateDescription = async () => {
-    setIsGeneratingDesc(true);
-    const { keywords, type, beds, city } = form.getValues();
-
-    if (!type || !beds || !city) {
-        toast({
-            title: "Missing Information",
-            description: "Please fill in Property Type, Bedrooms, and City to generate a description.",
-            variant: "destructive",
-        });
-        setIsGeneratingDesc(false);
-        return;
-    }
-
-    try {
-      const result = await generateListingDescription({
-        propertyType: type,
-        beds,
-        city,
-        keywords: keywords || "beautiful, convenient, great value",
-      });
-      form.setValue('description', result.description, { shouldValidate: true });
-      toast({
-        title: "Description Generated!",
-        description: "The AI has crafted a description for you. Feel free to edit it further.",
-      });
-    } catch (error) {
-      console.error("Description generation failed:", error);
-      toast({
-        title: "An error occurred",
-        description: "Could not generate a description. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsGeneratingDesc(false);
-    }
-  };
   
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       const files = e.target.files;
@@ -218,27 +176,6 @@ export default function ListPropertyPage() {
                 )}
               />
 
-              <div className="space-y-2">
-                <FormField
-                  control={form.control}
-                  name="keywords"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Description Keywords</FormLabel>
-                      <FormControl>
-                        <Input placeholder="e.g., sunny balcony, quiet street, great for families" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                 <Button type="button" variant="outline" size="sm" onClick={handleGenerateDescription} disabled={isGeneratingDesc}>
-                      {isGeneratingDesc ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Wand2 className="mr-2 h-4 w-4" />}
-                      Generate Description with AI
-                 </Button>
-              </div>
-
-
               <FormField
                 control={form.control}
                 name="description"
@@ -246,11 +183,10 @@ export default function ListPropertyPage() {
                   <FormItem>
                     <FormLabel>Description</FormLabel>
                     <FormControl>
-                      <TextareaAutosize
+                      <Textarea
                         placeholder="Describe your property in detail..."
                         {...field}
                         className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
-                        minRows={5}
                       />
                     </FormControl>
                     <FormMessage />
@@ -298,6 +234,19 @@ export default function ListPropertyPage() {
                     render={({ field }) => (
                         <FormItem>
                         <FormLabel>Bedrooms</FormLabel>
+                        <FormControl>
+                            <Input type="number" placeholder="2" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                    />
+                 <FormField
+                    control={form.control}
+                    name="baths"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel>Bathrooms</FormLabel>
                         <FormControl>
                             <Input type="number" placeholder="2" {...field} />
                         </FormControl>
@@ -431,3 +380,5 @@ export default function ListPropertyPage() {
     </div>
   );
 }
+
+    
