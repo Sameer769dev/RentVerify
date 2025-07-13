@@ -38,21 +38,29 @@ import { useAuth } from "./auth-provider"
 import { auth } from "@/lib/firebase"
 import GharBhadaIcon from "./gharbhada-icon"
 
-const navLinks = [
+const publicNavLinks = [
+  { href: "/search", label: "Listings", icon: Search },
+  { href: "/about", label: "About Us", icon: Building },
+  { href: "/blog", label: "Blog", icon: Newspaper },
+  { href: "/help-center", label: "Help Center", icon: ShieldCheck },
+];
+
+const appNavLinks = [
   { href: "/search", label: "Listings", icon: Search },
   { href: "/messages", label: "Messages", icon: MessageSquare },
   { href: "/contracts", label: "Contracts", icon: FileText },
-  { href: "/blog", label: "Blog", icon: Newspaper },
 ]
 
 export default function Header() {
-  const { user } = useAuth();
+  const { user, userProfile } = useAuth();
   const router = useRouter();
   
   const handleLogout = async () => {
     await auth.signOut();
     router.push('/');
   }
+
+  const navLinks = user ? appNavLinks : publicNavLinks;
 
   return (
     <header className="sticky top-0 z-50 flex h-16 items-center gap-4 border-b bg-background/80 backdrop-blur-sm px-4 md:px-6">
@@ -79,12 +87,14 @@ export default function Header() {
       </nav>
 
       <div className="flex items-center gap-2 md:ml-4">
-         <Button asChild>
-            <Link href="/list-property">
-              <PlusCircle className="mr-2 h-4 w-4" />
-              List a Property
-            </Link>
-          </Button>
+         {user && (
+            <Button asChild>
+                <Link href="/list-property">
+                <PlusCircle className="mr-2 h-4 w-4" />
+                List Property
+                </Link>
+            </Button>
+         )}
 
         {user ? (
             <DropdownMenu>
@@ -97,12 +107,14 @@ export default function Header() {
             <DropdownMenuContent align="end">
                 <DropdownMenuLabel>My Account</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                    <Link href="/dashboard" className="flex items-center w-full">
-                        <LayoutDashboard className="mr-2 h-4 w-4" />
-                        <span>Dashboard</span>
-                    </Link>
-                </DropdownMenuItem>
+                {userProfile?.role === 'owner' && (
+                     <DropdownMenuItem asChild>
+                        <Link href="/dashboard" className="flex items-center w-full">
+                            <LayoutDashboard className="mr-2 h-4 w-4" />
+                            <span>Owner Dashboard</span>
+                        </Link>
+                    </DropdownMenuItem>
+                )}
                 <DropdownMenuItem asChild>
                     <Link href="/profile" className="flex items-center w-full">
                         <User className="mr-2 h-4 w-4" />
@@ -123,12 +135,19 @@ export default function Header() {
             </DropdownMenuContent>
             </DropdownMenu>
         ) : (
-            <Button asChild variant="outline">
-                <Link href="/login">
-                    <LogIn className="mr-2 h-4 w-4"/>
-                    Login
-                </Link>
-            </Button>
+             <div className="flex items-center gap-2">
+                <Button asChild>
+                    <Link href="/list-property">
+                    List for Free
+                    </Link>
+                </Button>
+                 <Button asChild variant="outline">
+                    <Link href="/login">
+                        <LogIn className="mr-2 h-4 w-4"/>
+                        Login
+                    </Link>
+                </Button>
+            </div>
         )}
 
 
