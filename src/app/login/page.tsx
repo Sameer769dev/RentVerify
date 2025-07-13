@@ -47,6 +47,12 @@ export default function LoginPage() {
     }
 
     const generateRecaptcha = () => {
+        const recaptchaContainer = document.getElementById('recaptcha-container');
+        if (!recaptchaContainer) {
+            // Container not ready yet, which can happen with SSR
+            return;
+        }
+
         if (!window.recaptchaVerifier) {
             window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
                 'size': 'invisible',
@@ -238,3 +244,5 @@ export default function LoginPage() {
     </div>
   );
 }
+
+    
