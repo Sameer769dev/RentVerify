@@ -8,7 +8,7 @@ export default function SearchLayout({
 }) {
   return (
       <SidebarProvider>
-          {children}
+          <div className="flex-grow flex flex-col">{children}</div>
       </SidebarProvider>
   );
 }

@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import * as React from "react"
@@ -100,7 +99,7 @@ export default function SearchPage() {
     };
 
     return (
-        <>
+        <div className="flex-grow flex">
             <Sidebar>
                 <SearchFilters 
                     priceRange={priceRange}
@@ -112,7 +111,8 @@ export default function SearchPage() {
                     onApplyFilters={handleApplyFilters}
                 />
                 <SidebarInset>
-                    <div className="p-4 border-b bg-background sticky top-0 z-10">
+                   <div className="flex flex-col h-full">
+                     <div className="p-4 border-b bg-background sticky top-0 z-10">
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
                                 <SidebarTrigger className="md:hidden"/>
@@ -151,14 +151,14 @@ export default function SearchPage() {
                         </div>
                     </div>
 
-                    <div className="relative h-[calc(100vh-8rem)]">
+                    <div className="flex-grow relative">
                         {isLoading ? (
                             <div className="flex justify-center items-center h-full">
                                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
                             </div>
                         ) : (
                             <>
-                                <div className={cn("h-full w-full", viewMode === 'map' ? 'block' : 'hidden')}>
+                                <div className={cn("absolute inset-0 h-full w-full", viewMode === 'map' ? 'block' : 'hidden')}>
                                      <MapView listings={filteredListings} />
                                 </div>
                                 
@@ -184,8 +184,9 @@ export default function SearchPage() {
                             </>
                         )}
                     </div>
+                   </div>
                 </SidebarInset>
             </Sidebar>
-        </>
+        </div>
     );
 }
