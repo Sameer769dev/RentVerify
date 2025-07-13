@@ -85,21 +85,21 @@ export default function HomePage() {
       {/* Hero Section */}
       <section className="relative bg-secondary/50">
           <div className="container mx-auto px-4 py-20 text-center sm:py-24 lg:py-32">
-              <h1 className="text-4xl font-bold tracking-tight text-foreground sm:text-5xl md:text-6xl">
+              <h1 className="text-4xl font-bold tracking-tight text-foreground sm:text-5xl lg:text-6xl">
                   Find Your Next Home in Nepal
               </h1>
               <p className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground sm:text-xl">
-                  Discover verified properties and connect directly with owners. No brokers, no hassle.
+                  Connect directly with verified owners.
               </p>
-              <div className="mt-8 max-w-xl mx-auto">
+              <div className="mt-8 max-w-2xl mx-auto">
                   <form onSubmit={handleSearch} className="relative">
                       <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                       <Input
                           type="search"
-                          placeholder="Search by City, Area or Property Type"
-                          className="w-full h-14 pl-12 pr-32 rounded-full shadow-lg"
+                          placeholder="Search by city, area, or property type"
+                          className="w-full h-14 pl-12 pr-32 rounded-full shadow-lg focus:ring-2 focus:ring-accent"
                       />
-                      <Button type="submit" size="lg" className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-full">
+                      <Button type="submit" size="lg" className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-full hover:scale-105 transition-transform">
                           Search
                       </Button>
                   </form>
@@ -112,13 +112,13 @@ export default function HomePage() {
         <div className="container mx-auto px-4">
            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
              {actionCards.map((card) => (
-                <Card key={card.title} className="text-center p-6 flex flex-col items-center hover:shadow-xl transition-shadow">
+                <Card key={card.title} className="text-center p-8 flex flex-col items-center hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
                     <div className="p-4 bg-primary/10 rounded-full mb-4">
                         {card.icon}
                     </div>
                     <CardTitle className="text-xl mb-2">{card.title}</CardTitle>
                     <p className="text-muted-foreground flex-grow mb-6">{card.description}</p>
-                    <Button asChild className="w-full">
+                    <Button asChild className="w-full hover:bg-accent">
                         <Link href={card.href}>{card.cta}</Link>
                     </Button>
                 </Card>
@@ -143,7 +143,7 @@ export default function HomePage() {
               <Loader2 className="h-8 w-8 animate-spin" />
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               {latestVerifiedListings.map((listing) => (
                 <ListingCard key={listing.id} listing={listing} />
               ))}
