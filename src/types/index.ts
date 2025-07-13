@@ -1,3 +1,4 @@
+
 import type { RecaptchaVerifier } from "firebase/auth";
 
 export type Listing = {
@@ -20,6 +21,16 @@ export type Listing = {
   type: 'House' | 'Flat' | 'Room';
   ownerId?: string; 
   createdAt?: Date;
+};
+
+export type UserProfile = {
+    uid: string;
+    displayName: string;
+    email: string | null;
+    photoURL: string | null;
+    role: 'tenant' | 'owner';
+    createdAt: Date;
+    isVerified?: boolean; // For KYC
 };
 
 export type BlogPost = {

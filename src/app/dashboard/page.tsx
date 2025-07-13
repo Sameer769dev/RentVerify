@@ -20,7 +20,7 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts"
-import { Eye, MessageSquare, CheckCircle, Percent, Loader2 } from "lucide-react"
+import { Eye, MessageSquare, CheckCircle, Percent, Loader2, ShieldAlert } from "lucide-react"
 import { getUserListings } from "@/lib/firestore"
 import type { Listing } from "@/types"
 import { useAuth } from "@/components/auth-provider"
@@ -45,13 +45,20 @@ const chartConfig = {
 export default function DashboardPage() {
   const [myProperties, setMyProperties] = useState<Listing[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const { user } = useAuth();
+  const { user, userProfile, isLoading: isAuthLoading } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
+    if (isAuthLoading) return; // Wait until auth state is determined
+    
     if (!user) {
       router.push('/login?redirect=/dashboard');
       return;
+    }
+
+    if (userProfile && userProfile.role !== 'owner') {
+        router.push('/'); // Or a dedicated "access-denied" page
+        return;
     }
 
     const fetchUserListings = async () => {
@@ -66,13 +73,27 @@ export default function DashboardPage() {
       }
     };
     
-    fetchUserListings();
-  }, [user, router]);
+    if (userProfile?.role === 'owner') {
+        fetchUserListings();
+    }
+  }, [user, userProfile, isAuthLoading, router]);
   
-  if (isLoading) {
+  if (isAuthLoading || isLoading) {
      return (
         <div className="flex justify-center items-center h-screen">
             <Loader2 className="h-8 w-8 animate-spin" />
+        </div>
+    )
+  }
+
+  if (userProfile?.role !== 'owner') {
+    return (
+        <div className="container mx-auto px-4 py-8 sm:px-6 lg:px-8 text-center">
+            <ShieldAlert className="h-16 w-16 mx-auto text-destructive mb-4" />
+            <h1 className="text-2xl font-bold">Access Denied</h1>
+            <p className="text-muted-foreground mt-2">
+                This dashboard is only available to property owners.
+            </p>
         </div>
     )
   }

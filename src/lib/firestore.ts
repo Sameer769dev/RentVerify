@@ -6,11 +6,13 @@ import {
   getDoc,
   getDocs,
   query,
+  setDoc,
   where,
 } from 'firebase/firestore';
+import type { User } from 'firebase/auth';
 import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
 import { auth, db, storage } from '@/lib/firebase';
-import type { Listing } from '@/types';
+import type { Listing, UserProfile } from '@/types';
 
 // Helper function to upload an image and get its URL
 export const uploadImage = async (file: File): Promise<string> => {
@@ -73,4 +75,30 @@ export const getUserListings = async (): Promise<Listing[]> => {
         listings.push({ id: doc.id, ...doc.data() } as Listing);
     });
     return listings;
+}
+
+// Create or update a user profile in Firestore
+export const createUserProfile = async (user: User, additionalData: Partial<UserProfile>) => {
+    const userDocRef = doc(db, 'users', user.uid);
+    const userDoc = await getDoc(userDocRef);
+
+    if (!userDoc.exists()) {
+        // New user, create the profile
+        const { displayName, email, photoURL, uid } = user;
+        try {
+            await setDoc(userDocRef, {
+                uid,
+                displayName: displayName || 'New User',
+                email,
+                photoURL,
+                createdAt: new Date(),
+                ...additionalData,
+            });
+        } catch (error) {
+            console.error("Error creating user profile in Firestore: ", error);
+            throw error;
+        }
+    }
+    // If user exists, we don't update their role or other info on subsequent logins
+    // unless specifically intended.
 }

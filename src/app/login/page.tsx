@@ -9,10 +9,11 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Separator } from '@/components/ui/separator';
 import { Phone, KeyRound, Handshake, Building, Loader2 } from "lucide-react";
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { auth } from '@/lib/firebase';
-import { RecaptchaVerifier, signInWithPhoneNumber, type ConfirmationResult } from 'firebase/auth';
+import { RecaptchaVerifier, signInWithPhoneNumber, type ConfirmationResult, GoogleAuthProvider, signInWithPopup, type UserCredential } from 'firebase/auth';
 import { useToast } from '@/hooks/use-toast';
+import { createUserProfile } from '@/lib/firestore';
 
 const GoogleIcon = () => (
     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5 mr-2">
@@ -28,7 +29,20 @@ export default function LoginPage() {
     const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const router = useRouter();
+    const searchParams = useSearchParams();
     const { toast } = useToast();
+
+    const handleSuccessfulLogin = async (userCredential: UserCredential) => {
+        try {
+            await createUserProfile(userCredential.user, { role });
+            toast({ title: 'Login Successful', description: 'You have been successfully logged in.' });
+            const redirectUrl = searchParams.get('redirect') || '/dashboard';
+            router.push(redirectUrl);
+        } catch (error) {
+            console.error("Error creating user profile:", error);
+            toast({ title: 'Error', description: 'Could not set up your user profile.', variant: 'destructive' });
+        }
+    }
 
     const generateRecaptcha = () => {
         if (!window.recaptchaVerifier) {
@@ -50,7 +64,7 @@ export default function LoginPage() {
             const result = await signInWithPhoneNumber(auth, `+1${phoneNumber}`, appVerifier);
             setConfirmationResult(result);
             setLoginStep('otp');
-            toast({ title: 'OTP Sent', description: `An OTP has been sent to ${phoneNumber}.` });
+            toast({ title: 'OTP Sent', description: `An OTP has been sent to +1${phoneNumber}.` });
         } catch (error) {
             console.error("Error sending OTP:", error);
             toast({ title: 'Error', description: 'Failed to send OTP. Please check the phone number and try again.', variant: 'destructive' });
@@ -64,9 +78,8 @@ export default function LoginPage() {
         if (!confirmationResult) return;
         setIsLoading(true);
         try {
-            await confirmationResult.confirm(otp);
-            toast({ title: 'Login Successful', description: 'You have been successfully logged in.' });
-            router.push('/');
+            const userCredential = await confirmationResult.confirm(otp);
+            await handleSuccessfulLogin(userCredential);
         } catch (error) {
             console.error("Error verifying OTP:", error);
             toast({ title: 'Error', description: 'Invalid OTP. Please try again.', variant: 'destructive' });
@@ -75,10 +88,18 @@ export default function LoginPage() {
         }
     }
 
-    const handleGoogleSignIn = () => {
-        console.log('Simulating Google Sign-in');
-        // In a real app, you would use signInWithPopup(auth, new GoogleAuthProvider());
-        router.push('/');
+    const handleGoogleSignIn = async () => {
+        setIsLoading(true);
+        const provider = new GoogleAuthProvider();
+        try {
+            const userCredential = await signInWithPopup(auth, provider);
+            await handleSuccessfulLogin(userCredential);
+        } catch (error) {
+            console.error("Google Sign-in error:", error);
+            toast({ title: "Google Sign-In Failed", description: "Could not sign in with Google. Please try again.", variant: "destructive" });
+        } finally {
+            setIsLoading(false);
+        }
     }
 
   return (
@@ -104,31 +125,37 @@ export default function LoginPage() {
                                 <CardDescription>Please select your role and sign in.</CardDescription>
                             </CardHeader>
                             <CardContent className="p-0">
-                                <form onSubmit={handlePhoneSubmit}>
-                                    <div className="space-y-6">
-                                        <div>
-                                            <Label className="font-medium">I am a...</Label>
-                                            <RadioGroup
-                                                defaultValue="tenant"
-                                                className="grid grid-cols-2 gap-4 mt-2"
-                                                onValueChange={setRole}
-                                                value={role}
-                                            >
-                                                <div>
-                                                    <RadioGroupItem value="tenant" id="tenant" className="peer sr-only" />
-                                                    <Label htmlFor="tenant" className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary">
-                                                        Tenant
-                                                    </Label>
-                                                </div>
-                                                <div>
-                                                    <RadioGroupItem value="owner" id="owner" className="peer sr-only" />
-                                                    <Label htmlFor="owner" className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary">
-                                                        Owner
-                                                    </Label>
-                                                </div>
-                                            </RadioGroup>
-                                        </div>
-                                        
+                                <div className="space-y-6">
+                                     <div>
+                                        <Label className="font-medium">I am a...</Label>
+                                        <RadioGroup
+                                            defaultValue="tenant"
+                                            className="grid grid-cols-2 gap-4 mt-2"
+                                            onValueChange={(value) => setRole(value as 'tenant' | 'owner')}
+                                            value={role}
+                                        >
+                                            <div>
+                                                <RadioGroupItem value="tenant" id="tenant" className="peer sr-only" />
+                                                <Label htmlFor="tenant" className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary">
+                                                    Tenant
+                                                </Label>
+                                            </div>
+                                            <div>
+                                                <RadioGroupItem value="owner" id="owner" className="peer sr-only" />
+                                                <Label htmlFor="owner" className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary">
+                                                    Owner
+                                                </Label>
+                                            </div>
+                                        </RadioGroup>
+                                    </div>
+
+                                    <div className="my-6 flex items-center">
+                                        <Separator className="flex-grow"/>
+                                        <span className="mx-4 text-xs text-muted-foreground">SIGN IN WITH</span>
+                                        <Separator className="flex-grow"/>
+                                    </div>
+                                
+                                    <form onSubmit={handlePhoneSubmit} className="space-y-4">
                                         <div className="relative">
                                             <div className="absolute inset-y-0 left-0 flex items-center pl-3">
                                                 <span className="text-muted-foreground sm:text-sm">+1</span>
@@ -143,20 +170,16 @@ export default function LoginPage() {
                                             />
                                         </div>
                                         <Button type="submit" className="w-full" disabled={isLoading}>
-                                            {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : null}
+                                            {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <Phone className="mr-2 h-4 w-4" />}
                                             Continue with Phone
                                         </Button>
-                                    </div>
-                                </form>
-                                <div className="my-6 flex items-center">
-                                    <Separator className="flex-grow"/>
-                                    <span className="mx-4 text-xs text-muted-foreground">OR</span>
-                                    <Separator className="flex-grow"/>
+                                    </form>
+                                    
+                                    <Button variant="outline" className="w-full" onClick={handleGoogleSignIn} disabled={isLoading}>
+                                        {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <GoogleIcon />}
+                                        Sign in with Google
+                                    </Button>
                                 </div>
-                                <Button variant="outline" className="w-full" onClick={handleGoogleSignIn} disabled>
-                                    <GoogleIcon />
-                                    Sign in with Google
-                                </Button>
                             </CardContent>
                         </>
                     )}
