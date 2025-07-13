@@ -10,13 +10,13 @@
     --card-foreground: 220 10% 10%;
     --popover: 220 20% 100%;
     --popover-foreground: 220 10% 10%;
-    --primary: 279 47% 47%;
+    --primary: 279 47% 47%; /* Royal Purple: #8E44AD */
     --primary-foreground: 210 20% 98%;
     --secondary: 220 15% 96%;
     --secondary-foreground: 220 10% 10%;
     --muted: 220 15% 92%;
     --muted-foreground: 220 10% 40%;
-    --accent: 38 90% 51%;
+    --accent: 38 90% 51%; /* Gold: #F39C12 */
     --accent-foreground: 24 10% 10%;
     --destructive: 0 72% 51%;
     --destructive-foreground: 210 20% 98%;
