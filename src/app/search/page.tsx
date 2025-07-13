@@ -99,7 +99,7 @@ export default function SearchPage() {
     };
 
     return (
-        <div className="flex-grow flex">
+        <div className="flex-grow flex h-[calc(100vh-4rem)]">
             <Sidebar>
                 <SearchFilters 
                     priceRange={priceRange}
@@ -112,17 +112,17 @@ export default function SearchPage() {
                 />
                 <SidebarInset>
                    <div className="flex flex-col h-full">
-                     <div className="p-4 border-b bg-background sticky top-0 z-10">
-                        <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
+                     <div className="p-4 border-b bg-background sticky top-0 z-10 flex-shrink-0">
+                        <div className="flex items-center justify-between gap-4">
+                            <div className="flex items-center gap-2 flex-shrink-1 min-w-0">
                                 <SidebarTrigger className="md:hidden"/>
-                                <div>
-                                    <h1 className="text-2xl font-bold">Search Results</h1>
+                                <div className="truncate">
+                                    <h1 className="text-2xl font-bold truncate">Search Results</h1>
                                     <p className="text-sm font-semibold text-primary">{filteredListings.length} properties found</p>
                                 </div>
                             </div>
 
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-2 flex-shrink-0">
                                 <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
                                         <Button variant="outline" size="sm" className="hidden sm:flex min-w-[180px] justify-between">
@@ -151,7 +151,7 @@ export default function SearchPage() {
                         </div>
                     </div>
 
-                    <div className="flex-grow relative">
+                    <div className="flex-grow relative bg-gray-50">
                         {isLoading ? (
                             <div className="flex justify-center items-center h-full">
                                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -174,7 +174,7 @@ export default function SearchPage() {
                                                 <ListingCard key={listing.id} listing={listing} layout={viewMode as "grid" | "list"}/>
                                             ))
                                         ) : (
-                                            <div className="col-span-full flex flex-col items-center justify-center h-96">
+                                            <div className="col-span-full flex flex-col items-center justify-center h-[calc(100vh-20rem)]">
                                                 <h3 className="text-xl font-semibold">No Listings Found</h3>
                                                 <p className="text-muted-foreground mt-2">Try adjusting your filters to find more properties.</p>
                                             </div>
