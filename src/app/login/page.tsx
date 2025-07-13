@@ -151,7 +151,7 @@ export default function LoginPage() {
 
                                     <div className="my-6 flex items-center">
                                         <Separator className="flex-grow"/>
-                                        <span className="mx-4 text-xs text-muted-foreground">SIGN IN WITH</span>
+                                        <span className="mx-4 text-xs text-muted-foreground">SIGN IN WITH PHONE</span>
                                         <Separator className="flex-grow"/>
                                     </div>
                                 
@@ -174,11 +174,6 @@ export default function LoginPage() {
                                             Continue with Phone
                                         </Button>
                                     </form>
-                                    
-                                    <Button variant="outline" className="w-full" onClick={handleGoogleSignIn} disabled={isLoading}>
-                                        {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <GoogleIcon />}
-                                        Sign in with Google
-                                    </Button>
                                 </div>
                             </CardContent>
                         </>
