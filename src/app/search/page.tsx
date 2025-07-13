@@ -21,7 +21,7 @@ type ViewMode = "grid" | "list" | "map";
 
 const MapView = dynamic(() => import('./_components/map-view'), {
     ssr: false,
-    loading: () => <Skeleton className="w-full h-[calc(100vh-8rem)]" />,
+    loading: () => <Skeleton className="w-full h-full" />,
 });
 
 
@@ -99,41 +99,6 @@ export default function SearchPage() {
         newest: "Newest"
     };
 
-    const renderContent = () => {
-        if (isLoading) {
-             return (
-                <div className="flex justify-center items-center h-[calc(100vh-8rem)]">
-                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                </div>
-            )
-        }
-        
-        if (viewMode === 'map') {
-            return <MapView listings={filteredListings} />;
-        }
-        return (
-            <ScrollArea className="h-[calc(100vh-8rem)]">
-                <div className={cn(
-                    "p-4 sm:p-6",
-                    viewMode === 'grid' 
-                        ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-                        : "flex flex-col gap-6"
-                )}>
-                    {filteredListings.length > 0 ? (
-                        filteredListings.map((listing) => (
-                            <ListingCard key={listing.id} listing={listing} layout={viewMode as "grid" | "list"}/>
-                        ))
-                    ) : (
-                        <div className="col-span-full flex flex-col items-center justify-center h-96">
-                            <h3 className="text-xl font-semibold">No Listings Found</h3>
-                            <p className="text-muted-foreground mt-2">Try adjusting your filters to find more properties.</p>
-                        </div>
-                    )}
-                </div>
-            </ScrollArea>
-        );
-    };
-
     return (
         <>
             <Sidebar>
@@ -185,7 +150,40 @@ export default function SearchPage() {
                             </div>
                         </div>
                     </div>
-                    {renderContent()}
+
+                    <div className="relative h-[calc(100vh-8rem)]">
+                        {isLoading ? (
+                            <div className="flex justify-center items-center h-full">
+                                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                            </div>
+                        ) : (
+                            <>
+                                <div className={cn("h-full w-full", viewMode === 'map' ? 'block' : 'hidden')}>
+                                     <MapView listings={filteredListings} />
+                                </div>
+                                
+                                <ScrollArea className={cn("h-full", viewMode !== 'map' ? 'block' : 'hidden')}>
+                                    <div className={cn(
+                                        "p-4 sm:p-6",
+                                        viewMode === 'grid' 
+                                            ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+                                            : "flex flex-col gap-6"
+                                    )}>
+                                        {filteredListings.length > 0 ? (
+                                            filteredListings.map((listing) => (
+                                                <ListingCard key={listing.id} listing={listing} layout={viewMode as "grid" | "list"}/>
+                                            ))
+                                        ) : (
+                                            <div className="col-span-full flex flex-col items-center justify-center h-96">
+                                                <h3 className="text-xl font-semibold">No Listings Found</h3>
+                                                <p className="text-muted-foreground mt-2">Try adjusting your filters to find more properties.</p>
+                                            </div>
+                                        )}
+                                    </div>
+                                </ScrollArea>
+                            </>
+                        )}
+                    </div>
                 </SidebarInset>
             </Sidebar>
         </>

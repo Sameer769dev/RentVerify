@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import type { Listing } from '@/types';
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -24,19 +24,27 @@ const defaultIcon = new L.Icon({
     shadowSize: [41, 41],
 });
 
+// A component to automatically adjust map view when listings change
+const MapUpdater: React.FC<{ listings: Listing[] }> = ({ listings }) => {
+    const map = useMap();
+    React.useEffect(() => {
+        if (listings.length > 0) {
+            const bounds = new L.LatLngBounds(listings.map(l => [l.location.lat, l.location.lng]));
+            if (bounds.isValid()) {
+                map.fitBounds(bounds, { padding: [50, 50] });
+            }
+        }
+    }, [listings, map]);
+    return null;
+}
+
 const MapView: React.FC<MapViewProps> = ({ listings }) => {
   if (typeof window === 'undefined') {
     return null; // Don't render on the server
   }
 
   // Set default center to Kathmandu, Nepal
-  let center: [number, number] = [27.7172, 85.3240]; 
-  
-  if (listings.length > 0) {
-    const avgLat = listings.reduce((sum, l) => sum + l.location.lat, 0) / listings.length;
-    const avgLng = listings.reduce((sum, l) => sum + l.location.lng, 0) / listings.length;
-    center = [avgLat, avgLng];
-  }
+  const center: [number, number] = [27.7172, 85.3240]; 
 
   return (
     <MapContainer center={center} zoom={12} scrollWheelZoom={true} className="h-full w-full">
@@ -71,6 +79,8 @@ const MapView: React.FC<MapViewProps> = ({ listings }) => {
           </Popup>
         </Marker>
       ))}
+
+      <MapUpdater listings={listings} />
     </MapContainer>
   );
 };
