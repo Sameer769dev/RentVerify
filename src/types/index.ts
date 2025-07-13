@@ -18,8 +18,8 @@ export type Listing = {
   amenities: string[];
   verified: boolean;
   type: 'House' | 'Flat' | 'Room';
-  ownerId?: string; // Added ownerId
-  createdAt?: Date; // Added createdAt
+  ownerId?: string; 
+  createdAt?: Date;
 };
 
 export type BlogPost = {

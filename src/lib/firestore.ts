@@ -14,7 +14,10 @@ import type { Listing } from '@/types';
 
 // Helper function to upload an image and get its URL
 export const uploadImage = async (file: File): Promise<string> => {
-  const storageRef = ref(storage, `listings/${auth.currentUser?.uid}/${Date.now()}-${file.name}`);
+  if (!auth.currentUser) {
+    throw new Error('You must be logged in to upload an image.');
+  }
+  const storageRef = ref(storage, `listings/${auth.currentUser.uid}/${Date.now()}-${file.name}`);
   const snapshot = await uploadBytes(storageRef, file);
   const downloadURL = await getDownloadURL(snapshot.ref);
   return downloadURL;
