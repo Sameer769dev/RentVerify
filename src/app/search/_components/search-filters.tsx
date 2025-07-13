@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -81,7 +82,7 @@ export function SearchFilters({
               <SidebarGroupContent className="mt-3">
                 <RadioGroup
                   value={propertyType}
-                  onValueValueChange={onPropertyTypeChange}
+                  onValueChange={onPropertyTypeChange}
                   className="space-y-4"
                   aria-label="Select property type"
                 >
