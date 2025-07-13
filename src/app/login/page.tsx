@@ -16,10 +16,11 @@ import { useToast } from '@/hooks/use-toast';
 import { createUserProfile } from '@/lib/firestore';
 
 const GoogleIcon = () => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5 mr-2">
-      <path d="M22 12c0-5.52-4.48-10-10-10S2 6.48 2 12c0 4.84 3.44 8.87 8 9.8V15H8v-3h2V9.5C10 7.57 11.57 6 13.5 6H16v3h-1.5c-.83 0-1.5.67-1.5 1.5V12h3l-.5 3h-2.5v6.8c4.56-.93 8-4.96 8-9.8z"/>
+    <svg className="mr-2 h-4 w-4" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="google" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512">
+        <path fill="currentColor" d="M488 261.8C488 403.3 391.1 504 248 504 110.8 504 0 393.2 0 256S110.8 8 248 8c66.8 0 126 23.4 172.9 61.9l-72.2 72.2C322 104 288.7 88 248 88c-88.3 0-160 71.7-160 160s71.7 160 160 160c94.4 0 135.6-70.3 140.8-106.9H248v-85.3h236.1c2.3 12.7 3.9 26.9 3.9 41.4z"></path>
     </svg>
 );
+
 
 export default function LoginPage() {
     const [role, setRole] = useState('tenant');
@@ -148,10 +149,15 @@ export default function LoginPage() {
                                             </div>
                                         </RadioGroup>
                                     </div>
+                                    
+                                    <Button variant="outline" className="w-full" onClick={handleGoogleSignIn} disabled={isLoading}>
+                                        <GoogleIcon />
+                                        Sign in with Google
+                                    </Button>
 
                                     <div className="my-6 flex items-center">
                                         <Separator className="flex-grow"/>
-                                        <span className="mx-4 text-xs text-muted-foreground">SIGN IN WITH PHONE</span>
+                                        <span className="mx-4 text-xs text-muted-foreground">OR</span>
                                         <Separator className="flex-grow"/>
                                     </div>
                                 
@@ -195,7 +201,7 @@ export default function LoginPage() {
                                             <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                                             <Input 
                                                 type="text" 
-                                                placeholder="Enter 6-digit OTP" 
+                                                placeholder="6-digit OTP" 
                                                 className="pl-10 text-center tracking-[0.5em]" 
                                                 maxLength={6} 
                                                 required
