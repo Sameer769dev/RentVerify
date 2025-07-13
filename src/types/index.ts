@@ -23,6 +23,10 @@ export type Listing = {
   createdAt?: Date;
 };
 
+export type AdminListing = Listing & {
+    owner?: UserProfile;
+}
+
 export type UserProfile = {
     uid: string;
     displayName: string;

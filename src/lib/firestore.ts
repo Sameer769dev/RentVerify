@@ -7,6 +7,7 @@ import {
   getDocs,
   query,
   setDoc,
+  updateDoc,
   where,
 } from 'firebase/firestore';
 import type { User } from 'firebase/auth';
@@ -26,7 +27,7 @@ export const uploadImage = async (file: File): Promise<string> => {
 };
 
 // Add a new listing to Firestore
-export const addListing = async (listingData: Omit<Listing, 'id'>) => {
+export const addListing = async (listingData: Omit<Listing, 'id' | 'owner' | 'createdAt'>) => {
   if (!auth.currentUser) {
     throw new Error('You must be logged in to add a listing.');
   }
@@ -40,6 +41,13 @@ export const addListing = async (listingData: Omit<Listing, 'id'>) => {
   const docRef = await addDoc(collection(db, 'listings'), listingWithUser);
   return docRef.id;
 };
+
+// Update an existing listing
+export const updateListing = async (listingId: string, dataToUpdate: Partial<Listing>) => {
+    const listingRef = doc(db, "listings", listingId);
+    await updateDoc(listingRef, dataToUpdate);
+};
+
 
 // Get all listings from Firestore
 export const getListings = async (): Promise<Listing[]> => {
@@ -76,6 +84,17 @@ export const getUserListings = async (): Promise<Listing[]> => {
     });
     return listings;
 }
+
+// Get all users from Firestore
+export const getUsers = async (): Promise<UserProfile[]> => {
+    const querySnapshot = await getDocs(collection(db, "users"));
+    const users: UserProfile[] = [];
+    querySnapshot.forEach((doc) => {
+        users.push(doc.data() as UserProfile);
+    });
+    return users;
+};
+
 
 // Create or update a user profile in Firestore
 export const createUserProfile = async (user: User, additionalData: Partial<UserProfile>) => {
