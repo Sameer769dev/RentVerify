@@ -1,4 +1,6 @@
 
+'use server';
+
 import {
   addDoc,
   collection,
@@ -11,19 +13,95 @@ import {
   where,
 } from 'firebase/firestore';
 import type { User } from 'firebase/auth';
-import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
-import { auth, db, storage } from '@/lib/firebase';
+import { auth, db } from '@/lib/firebase';
 import type { Listing, UserProfile } from '@/types';
+import { google } from 'googleapis';
 
 // Helper function to upload an image and get its URL
-export const uploadImage = async (file: File): Promise<string> => {
+export const uploadImage = async (file: File, accessToken: string): Promise<string> => {
   if (!auth.currentUser) {
     throw new Error('You must be logged in to upload an image.');
   }
-  const storageRef = ref(storage, `listings/${auth.currentUser.uid}/${Date.now()}-${file.name}`);
-  const snapshot = await uploadBytes(storageRef, file);
-  const downloadURL = await getDownloadURL(snapshot.ref);
-  return downloadURL;
+
+  const oAuth2Client = new google.auth.OAuth2();
+  oAuth2Client.setCredentials({ access_token: accessToken });
+
+  const drive = google.drive({ version: 'v3', auth: oAuth2Client });
+
+  // 1. Find or create a folder for the app
+  let folderId: string | null = null;
+  const folderName = 'GharBhada_Uploads';
+
+  try {
+    const res = await drive.files.list({
+      q: `mimeType='application/vnd.google-apps.folder' and name='${folderName}' and trashed=false`,
+      fields: 'files(id, name)',
+    });
+    
+    if (res.data.files && res.data.files.length > 0) {
+      folderId = res.data.files[0].id!;
+    } else {
+      const folderMetadata = {
+        name: folderName,
+        mimeType: 'application/vnd.google-apps.folder',
+      };
+      const folder = await drive.files.create({
+        requestBody: folderMetadata,
+        fields: 'id',
+      });
+      folderId = folder.data.id!;
+    }
+
+    if (!folderId) {
+      throw new Error('Could not create or find the app folder in Google Drive.');
+    }
+
+    // 2. Upload the file to the folder
+    const fileMetadata = {
+      name: `${Date.now()}-${file.name}`,
+      parents: [folderId],
+    };
+    
+    // Convert File to a readable stream for the API
+    const buffer = Buffer.from(await file.arrayBuffer());
+    const media = {
+      mimeType: file.type,
+      body: require('stream').Readable.from(buffer),
+    };
+
+    const driveFile = await drive.files.create({
+      requestBody: fileMetadata,
+      media: media,
+      fields: 'id, webViewLink, webContentLink',
+    });
+
+    if (!driveFile.data.id) {
+       throw new Error('File upload to Google Drive failed.');
+    }
+
+    // 3. Make the file publicly accessible (for viewing in the app)
+    await drive.permissions.create({
+        fileId: driveFile.data.id,
+        requestBody: {
+            role: 'reader',
+            type: 'anyone',
+        }
+    });
+
+    // 4. Return a direct download link
+    const webContentLink = driveFile.data.webContentLink;
+    if (!webContentLink) {
+        // Fallback to webViewLink if content link is not available
+        return driveFile.data.webViewLink || `https://drive.google.com/file/d/${driveFile.data.id}/view`;
+    }
+    // The webContentLink is better for direct embedding if available
+    return webContentLink.replace('&export=download', '');
+  
+  } catch (error) {
+    console.error('Google Drive upload error:', error);
+    // For this POC, we'll throw. In production, you might want more graceful error handling.
+    throw new Error('Failed to upload image to Google Drive.');
+  }
 };
 
 // Add a new listing to Firestore

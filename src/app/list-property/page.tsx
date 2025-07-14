@@ -43,7 +43,7 @@ export default function ListPropertyPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { user } = useAuth();
+  const { user, accessToken } = useAuth();
   const router = useRouter();
 
   const form = useForm<ListingFormData>({
@@ -92,9 +92,18 @@ export default function ListPropertyPage() {
 
   const onSubmit = async (data: ListingFormData) => {
     setIsSubmitting(true);
+    if (!accessToken) {
+        toast({
+            title: "Authentication Error",
+            description: "Could not get authentication token for Google Drive. Please log in again.",
+            variant: "destructive"
+        });
+        setIsSubmitting(false);
+        return;
+    }
     try {
-        // Upload images to Firebase Storage
-        const imageUrls = await Promise.all(data.photos.map(file => uploadImage(file)));
+        // Upload images to Google Drive
+        const imageUrls = await Promise.all(data.photos.map(file => uploadImage(file, accessToken)));
 
         // Create listing data object
         const listingData = {
@@ -132,7 +141,7 @@ export default function ListPropertyPage() {
         console.error("Failed to list property:", error);
         toast({
             title: "Listing Failed",
-            description: "An error occurred while listing your property. Please try again.",
+            description: "An error occurred while listing your property. It might be a Google Drive permission issue.",
             variant: "destructive",
         });
     } finally {
@@ -384,5 +393,3 @@ export default function ListPropertyPage() {
     </div>
   );
 }
-
-    

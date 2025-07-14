@@ -11,7 +11,7 @@ import { Separator } from '@/components/ui/separator';
 import { Phone, KeyRound, Handshake, Loader2 } from "lucide-react";
 import { useRouter, useSearchParams } from 'next/navigation';
 import { auth } from '@/lib/firebase';
-import { RecaptchaVerifier, signInWithPhoneNumber, type ConfirmationResult, GoogleAuthProvider, signInWithPopup, type UserCredential } from 'firebase/auth';
+import { RecaptchaVerifier, signInWithPhoneNumber, type ConfirmationResult, GoogleAuthProvider, signInWithPopup, type UserCredential, OAuthProvider } from 'firebase/auth';
 import { useToast } from '@/hooks/use-toast';
 import { createUserProfile } from '@/lib/firestore';
 import GharBhadaIcon from '@/components/gharbhada-icon';
@@ -34,9 +34,14 @@ export default function LoginPage() {
     const searchParams = useSearchParams();
     const { toast } = useToast();
 
-    const handleSuccessfulLogin = async (userCredential: UserCredential) => {
+    const handleSuccessfulLogin = async (userCredential: UserCredential, accessToken?: string | null) => {
         try {
             await createUserProfile(userCredential.user, { role });
+            
+            if (accessToken) {
+                sessionStorage.setItem('gdrive_token', accessToken);
+            }
+
             toast({ title: 'Login Successful', description: 'You have been successfully logged in.' });
             const redirectUrl = searchParams.get('redirect') || '/dashboard';
             router.push(redirectUrl);
@@ -112,8 +117,10 @@ export default function LoginPage() {
         // Add the Google Drive scope to request permissions.
         provider.addScope('https://www.googleapis.com/auth/drive.file');
         try {
-            const userCredential = await signInWithPopup(auth, provider);
-            await handleSuccessfulLogin(userCredential);
+            const result = await signInWithPopup(auth, provider);
+            const credential = GoogleAuthProvider.credentialFromResult(result);
+            const accessToken = credential?.accessToken;
+            await handleSuccessfulLogin(result, accessToken);
         } catch (error) {
             console.error("Google Sign-in error:", error);
             toast({ title: "Google Sign-In Failed", description: "Could not sign in with Google. Please try again.", variant: "destructive" });
@@ -246,5 +253,3 @@ export default function LoginPage() {
     </div>
   );
 }
-
-    
