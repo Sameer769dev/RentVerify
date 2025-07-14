@@ -10,8 +10,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { toast } from '@/hooks/use-toast';
-import { Wand2, Loader2, Download, FileText } from 'lucide-react';
+import { Wand2, Loader2, Download, FileText, Lock } from 'lucide-react';
 import { generateContract } from '@/ai/flows/generate-contract-flow';
+import { useAuth } from '@/components/auth-provider';
+import Link from 'next/link';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 const contractTemplates: { [key: string]: { title: string; description: string } } = {
   'standard-residential': {
@@ -52,6 +55,7 @@ type ContractFormData = z.infer<typeof contractSchema>;
 export default function GenerateContractPage({ params }: { params: { id: string } }) {
   const [isLoading, setIsLoading] = useState(false);
   const [generatedContract, setGeneratedContract] = useState<string | null>(null);
+  const { user, isLoading: authLoading } = useAuth();
 
   const template = contractTemplates[params.id] || {
     title: "Generate Contract",
@@ -107,6 +111,13 @@ export default function GenerateContractPage({ params }: { params: { id: string 
     document.body.removeChild(link);
   };
 
+  if (authLoading) {
+    return (
+        <div className="flex justify-center items-center h-screen">
+            <Loader2 className="h-8 w-8 animate-spin" />
+        </div>
+    )
+  }
 
   return (
     <div className="container mx-auto px-4 py-8 sm:px-6 lg:px-8 max-w-4xl">
@@ -119,6 +130,18 @@ export default function GenerateContractPage({ params }: { params: { id: string 
         </p>
       </div>
 
+    {!user ? (
+        <Alert variant="destructive">
+          <Lock className="h-4 w-4" />
+          <AlertTitle>Access Denied</AlertTitle>
+          <AlertDescription>
+            You must be logged in to generate a contract. Please log in to continue.
+             <Button asChild className="mt-4 w-full">
+                <Link href={`/login?redirect=/contracts/${params.id}`}>Login to Continue</Link>
+             </Button>
+          </AlertDescription>
+        </Alert>
+    ) : (
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <div>
           <Card>
@@ -182,6 +205,7 @@ export default function GenerateContractPage({ params }: { params: { id: string 
             </Card>
         </div>
       </div>
+     )}
     </div>
   );
 }
