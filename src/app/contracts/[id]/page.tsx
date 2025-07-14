@@ -35,12 +35,6 @@ const contractTemplates: { [key: string]: { title: string; description: string }
   },
 };
 
-export function generateStaticParams() {
-  return Object.keys(contractTemplates).map((id) => ({
-    id: id,
-  }));
-}
-
 const contractSchema = z.object({
   landlordName: z.string().min(1, "Landlord's name is required."),
   tenantName: z.string().min(1, "Tenant's name is required."),
