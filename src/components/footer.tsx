@@ -27,7 +27,6 @@ export default function Footer() {
               <p className="font-medium">Company</p>
               <ul className="mt-6 space-y-4 text-sm">
                 <li><Link href="/about" className="text-muted-foreground hover:text-foreground">About</Link></li>
-                <li><Link href="/blog" className="text-muted-foreground hover:text-foreground">Blog</Link></li>
                 <li><Link href="/careers" className="text-muted-foreground hover:text-foreground">Careers</Link></li>
                 <li><Link href="/press" className="text-muted-foreground hover:text-foreground">Press</Link></li>
               </ul>

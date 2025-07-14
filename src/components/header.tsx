@@ -41,7 +41,6 @@ import GharBhadaIcon from "./gharbhada-icon"
 const publicNavLinks = [
   { href: "/search", label: "Listings", icon: Search },
   { href: "/about", label: "About Us", icon: Building },
-  { href: "/blog", label: "Blog", icon: Newspaper },
   { href: "/help-center", label: "Help Center", icon: ShieldCheck },
 ];
 

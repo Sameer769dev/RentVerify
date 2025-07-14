@@ -6,7 +6,7 @@ import Header from "./header";
 import Footer from "./footer";
 import { useAuth } from "./auth-provider";
 
-const WEBSITE_PATHS = ['/', '/about', '/careers', '/press', '/blog', '/legal/terms-of-service', '/legal/privacy-policy', '/legal/cookie-policy'];
+const WEBSITE_PATHS = ['/', '/about', '/careers', '/press', '/legal/terms-of-service', '/legal/privacy-policy', '/legal/cookie-policy'];
 
 export default function PageShell({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();
@@ -20,7 +20,7 @@ export default function PageShell({ children }: { children: React.ReactNode }) {
     }
     
     // Website view for logged-out users or on specific public pages
-    const isWebsiteView = !user || WEBSITE_PATHS.some(path => pathname.startsWith(path) && !pathname.startsWith('/blog/'));
+    const isWebsiteView = !user || WEBSITE_PATHS.some(path => pathname.startsWith(path));
 
 
     return (
