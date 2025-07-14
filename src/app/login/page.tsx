@@ -109,6 +109,8 @@ export default function LoginPage() {
     const handleGoogleSignIn = async () => {
         setIsLoading(true);
         const provider = new GoogleAuthProvider();
+        // Add the Google Drive scope to request permissions.
+        provider.addScope('https://www.googleapis.com/auth/drive.file');
         try {
             const userCredential = await signInWithPopup(auth, provider);
             await handleSuccessfulLogin(userCredential);
