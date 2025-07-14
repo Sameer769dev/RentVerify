@@ -25,7 +25,6 @@ export default function PageShell({ children }: { children: React.ReactNode }) {
 
     return (
         <div className="flex flex-col min-h-screen">
-            <div id="recaptcha-container"></div>
             <Header />
             <main className="flex-grow">{children}</main>
             {isWebsiteView && <Footer />}
