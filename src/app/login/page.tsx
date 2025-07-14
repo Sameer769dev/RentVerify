@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -11,7 +11,7 @@ import { Separator } from '@/components/ui/separator';
 import { Phone, KeyRound, Handshake, Loader2 } from "lucide-react";
 import { useRouter, useSearchParams } from 'next/navigation';
 import { auth } from '@/lib/firebase';
-import { RecaptchaVerifier, signInWithPhoneNumber, type ConfirmationResult, GoogleAuthProvider, signInWithPopup, type UserCredential, OAuthProvider } from 'firebase/auth';
+import { RecaptchaVerifier, signInWithPhoneNumber, type ConfirmationResult, GoogleAuthProvider, signInWithPopup, type UserCredential } from 'firebase/auth';
 import { useToast } from '@/hooks/use-toast';
 import { createUserProfile } from '@/lib/firestore';
 import GharBhadaIcon from '@/components/gharbhada-icon';
@@ -34,6 +34,18 @@ export default function LoginPage() {
     const searchParams = useSearchParams();
     const { toast } = useToast();
 
+    useEffect(() => {
+        if (!window.recaptchaVerifier) {
+            window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+                'size': 'invisible',
+                'callback': (response: any) => {
+                    // reCAPTCHA solved, allow signInWithPhoneNumber.
+                }
+            });
+        }
+    }, []);
+
+
     const handleSuccessfulLogin = async (userCredential: UserCredential, accessToken?: string | null) => {
         try {
             await createUserProfile(userCredential.user, { role });
@@ -50,29 +62,11 @@ export default function LoginPage() {
             toast({ title: 'Error', description: 'Could not set up your user profile.', variant: 'destructive' });
         }
     }
-
-    const generateRecaptcha = () => {
-        const recaptchaContainer = document.getElementById('recaptcha-container');
-        if (!recaptchaContainer) {
-            // Container not ready yet, which can happen with SSR
-            return;
-        }
-
-        if (!window.recaptchaVerifier) {
-            window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
-                'size': 'invisible',
-                'callback': (response: any) => {
-                    // reCAPTCHA solved, allow signInWithPhoneNumber.
-                }
-            });
-        }
-    }
-
+    
     const handlePhoneSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsLoading(true);
         try {
-            generateRecaptcha();
             const appVerifier = window.recaptchaVerifier;
             const result = await signInWithPhoneNumber(auth, `+977${phoneNumber}`, appVerifier);
             setConfirmationResult(result);
@@ -253,3 +247,5 @@ export default function LoginPage() {
     </div>
   );
 }
+
+    
