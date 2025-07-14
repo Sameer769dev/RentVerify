@@ -31,14 +31,14 @@ export default function PrivacyPolicyPage() {
       <p>
         We use personal information collected via our Service for a variety of
         business purposes described below.
-        <ul>
-            <li>To facilitate account creation and logon process.</li>
-            <li>To post testimonials.</li>
-            <li>Request feedback.</li>
-            <li>To enable user-to-user communications.</li>
-            <li>To manage user accounts.</li>
-        </ul>
       </p>
+      <ul>
+          <li>To facilitate account creation and logon process.</li>
+          <li>To post testimonials.</li>
+          <li>Request feedback.</li>
+          <li>To enable user-to-user communications.</li>
+          <li>To manage user accounts.</li>
+      </ul>
 
       <h2>4. Will Your Information Be Shared With Anyone?</h2>
       <p>
@@ -46,12 +46,12 @@ export default function PrivacyPolicyPage() {
         provide you with services, to protect your rights, or to fulfill
         business obligations. We may process or share your data that we hold
         based on the following legal basis:
-        <ul>
-            <li><strong>Consent:</strong> We may process your data if you have given us specific consent to use your personal information for a specific purpose.</li>
-            <li><strong>Legitimate Interests:</strong> We may process your data when it is reasonably necessary to achieve our legitimate business interests.</li>
-            <li><strong>Legal Obligations:</strong> We may disclose your information where we are legally required to do so in order to comply with applicable law, governmental requests, a judicial proceeding, court order, or legal process.</li>
-        </ul>
       </p>
+      <ul>
+          <li><strong>Consent:</strong> We may process your data if you have given us specific consent to use your personal information for a specific purpose.</li>
+          <li><strong>Legitimate Interests:</strong> We may process your data when it is reasonably necessary to achieve our legitimate business interests.</li>
+          <li><strong>Legal Obligations:</strong> We may disclose your information where we are legally required to do so in order to comply with applicable law, governmental requests, a judicial proceeding, court order, or legal process.</li>
+      </ul>
     </>
   );
 }

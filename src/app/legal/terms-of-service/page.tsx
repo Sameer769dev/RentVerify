@@ -28,23 +28,23 @@ export default function TermsOfServicePage() {
       <p>
         You may use Service only for lawful purposes and in accordance with
         Terms. You agree not to use Service:
-        <ul>
-          <li>
-            In any way that violates any applicable national or international law
-            or regulation.
-          </li>
-          <li>
-            For the purpose of exploiting, harming, or attempting to exploit or
-            harm minors in any way by exposing them to inappropriate content or
-            otherwise.
-          </li>
-          <li>
-            To transmit, or procure the sending of, any advertising or
-            promotional material, including any "junk mail", "chain letter,"
-            "spam," or any other similar solicitation.
-          </li>
-        </ul>
       </p>
+      <ul>
+        <li>
+          In any way that violates any applicable national or international law
+          or regulation.
+        </li>
+        <li>
+          For the purpose of exploiting, harming, or attempting to exploit or
+          harm minors in any way by exposing them to inappropriate content or
+          otherwise.
+        </li>
+        <li>
+          To transmit, or procure the sending of, any advertising or
+          promotional material, including any "junk mail", "chain letter,"
+          "spam," or any other similar solicitation.
+        </li>
+      </ul>
 
       <h2>4. Listings and Content</h2>
       <p>
